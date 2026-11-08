@@ -7,7 +7,8 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
-const dist = join(dirname(require.resolve("pdfjs-dist/package.json")), "build");
+// The legacy build: WebKit (the iPhone WebView) lacks newer features the default build assumes.
+const dist = join(dirname(require.resolve("pdfjs-dist/package.json")), "legacy", "build");
 const lib = readFileSync(join(dist, "pdf.min.mjs"), "utf8");
 const worker = readFileSync(join(dist, "pdf.worker.min.mjs"), "utf8");
 const out = join(here, "..", "src", "generated");

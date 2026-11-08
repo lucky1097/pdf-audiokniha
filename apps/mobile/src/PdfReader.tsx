@@ -45,9 +45,16 @@ window.__read = async function (b64) {
     const pages = [];
     for (let n = 1; n <= doc.numPages; n++) {
       const page = await doc.getPage(n);
-      const content = await page.getTextContent();
+      // Not page.getTextContent(): it reads a ReadableStream with for-await, which WebKit does not support.
+      const reader = page.streamTextContent().getReader();
+      const raw = [];
+      for (;;) {
+        const r = await reader.read();
+        if (r.done) break;
+        raw.push(...r.value.items);
+      }
       const items = [];
-      for (const it of content.items) {
+      for (const it of raw) {
         if (!("str" in it)) continue;
         const [a, b, , d, e, f] = it.transform;
         items.push({ str: it.str, x: e, y: f, width: it.width, fontSize: Math.hypot(a, b) || Math.abs(d) });

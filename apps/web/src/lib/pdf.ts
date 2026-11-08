@@ -1,7 +1,23 @@
 import { extractBook, type Book, type OutlineEntry, type PdfPage } from "@audiokniha/core";
-import { GlobalWorkerOptions, getDocument } from "pdfjs-dist";
+// The legacy build: the default one assumes the newest browser features (Map.getOrInsertComputed,
+// Math.sumPrecise…) that Safari on the iPhone does not have yet; legacy ships polyfills for them.
+import { GlobalWorkerOptions, getDocument, type PDFPageProxy } from "pdfjs-dist/legacy/build/pdf.mjs";
 
-GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).href;
+GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/legacy/build/pdf.worker.min.mjs", import.meta.url).href;
+
+type TextItem = Awaited<ReturnType<PDFPageProxy["getTextContent"]>>["items"][number];
+
+/** page.getTextContent() reads its stream with `for await`, which Safari's ReadableStream does not support
+    ("undefined is not a function (near '...e of t...')"); reading the stream by hand works everywhere. */
+async function textItems(page: PDFPageProxy): Promise<TextItem[]> {
+  const reader = page.streamTextContent().getReader();
+  const items: TextItem[] = [];
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return items;
+    items.push(...(value as { items: TextItem[] }).items);
+  }
+}
 
 export interface ImportedPdf {
   title: string;
@@ -18,9 +34,8 @@ export async function importPdf(file: File, onPage?: (n: number, total: number) 
     const pages: PdfPage[] = [];
     for (let n = 1; n <= doc.numPages; n++) {
       const page = await doc.getPage(n);
-      const content = await page.getTextContent();
       const items = [];
-      for (const it of content.items) {
+      for (const it of await textItems(page)) {
         if (!("str" in it)) continue;
         const [a, b, , d, e, f] = it.transform as number[];
         items.push({ str: it.str, x: e, y: f, width: it.width, fontSize: Math.hypot(a, b) || Math.abs(d) });
