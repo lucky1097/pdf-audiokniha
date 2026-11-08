@@ -16,6 +16,8 @@ const FILES = [
 ];
 
 const post = (m: WorkerResponse, transfer: Transferable[] = []) => (self as unknown as Worker).postMessage(m, transfer);
+const log = (message: string) => post({ type: "log", message });
+const mb = (bytes: number) => `${Math.round(bytes / 1048576)} MB`;
 
 // Dev serves the files at /ort/; a build puts them in ort/ beside assets/, so the app also works under a sub-path (the promo site's app/).
 ort.env.wasm.wasmPaths = import.meta.env.DEV ? new URL("/ort/", self.location.origin).href : new URL(/* @vite-ignore */ "../ort/", import.meta.url).href;
@@ -32,6 +34,7 @@ async function download(base: string, cache: Cache): Promise<void> {
     const cached = await cache.match(url);
     let size = Number(cached?.headers.get("x-size")) || 0;
     if (!cached) {
+      if (file.endsWith(".onnx")) log(`downloading ${file}`);
       const net = await fetch(url, { mode: "cors" });
       if (!net.ok || !net.body) throw new Error(`${file}: HTTP ${net.status}`);
       const total = Number(net.headers.get("content-length")) || 0;
@@ -65,14 +68,19 @@ async function download(base: string, cache: Cache): Promise<void> {
 
 let engine: SupertonicEngine | null = null;
 let backend: "webgpu" | "wasm" = "wasm";
+let firstDone = false;
 
 async function init(base: string, preferGpu: boolean): Promise<void> {
   const cache = await caches.open(CACHE);
   await download(base, cache);
+  log("files ready in the cache");
+  let backendTried = "";
   const read = async (f: string) => {
     const res = await cache.match(`${base}/${f}`);
     if (!res) throw new Error(`${f}: missing from the cache`);
-    return new Uint8Array(await res.arrayBuffer());
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    if (f.endsWith(".onnx")) log(`${backendTried}: creating session ${f.replace(/^onnx\//, "")} (${mb(bytes.byteLength)})`);
+    return bytes;
   };
   const json = async (f: string) => JSON.parse(new TextDecoder().decode(await read(f)));
   const styles: SupertonicAssets["styles"] = {};
@@ -93,18 +101,22 @@ async function init(base: string, preferGpu: boolean): Promise<void> {
   const o = ort as unknown as OrtLike;
   if (preferGpu && "gpu" in navigator) {
     try {
+      backendTried = "webgpu";
       engine = await SupertonicEngine.create(o, assets, { executionProviders: ["webgpu"], graphOptimizationLevel: "all" });
+      log("webgpu: sessions created, test sentence");
       await engine.synthesize("Ahoj.", { lang: "sk", voice: "F1", steps: 2 });
       backend = "webgpu";
       return;
     } catch (e) {
       console.warn("WebGPU failed, using WASM", e);
+      log(`webgpu failed: ${e instanceof Error ? e.message : String(e)}`);
       // Free the GPU sessions before loading the model again for WASM.
       await engine?.release();
       engine = null;
     }
   }
   // No memory arena: the arena keeps the largest working buffers allocated forever, which a phone cannot spare.
+  backendTried = `wasm ${ort.env.wasm.numThreads} thread(s)`;
   engine = await SupertonicEngine.create(o, assets, { executionProviders: ["wasm"], graphOptimizationLevel: "all", enableCpuMemArena: false });
   backend = "wasm";
 }
@@ -121,6 +133,10 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       const t0 = performance.now();
       const opts: SynthesisOptions = { lang: m.lang, voice: m.voice, steps: m.steps, seed: m.seed };
       const audio = await engine.synthesize(m.text, opts);
+      if (!firstDone) {
+        firstDone = true;
+        log(`first sentence ready in ${Math.round(performance.now() - t0)} ms (${(audio.length / engine.sampleRate).toFixed(1)} s of audio)`);
+      }
       const pcm = new Int16Array(audio.length);
       for (let i = 0; i < audio.length; i++) pcm[i] = Math.max(-32768, Math.min(32767, Math.round(audio[i] * 32767)));
       post({ type: "audio", id: m.id, pcm, ms: performance.now() - t0 }, [pcm.buffer]);

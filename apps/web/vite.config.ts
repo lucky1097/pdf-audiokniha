@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { copyFile, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
@@ -88,6 +89,14 @@ function devSave(): Plugin {
   };
 }
 
+function gitVersion(): string {
+  try {
+    return execSync("git rev-parse --short HEAD", { cwd: ROOT, encoding: "utf8" }).trim();
+  } catch {
+    return "dev";
+  }
+}
+
 // Multi-threaded WASM needs a cross-origin isolated page.
 const isolation = { "Cross-Origin-Opener-Policy": "same-origin", "Cross-Origin-Embedder-Policy": "require-corp" };
 
@@ -95,6 +104,9 @@ export default defineConfig(({ command }) => ({
   plugins: [react(), ortFiles(), localModel(), devSave()],
   define: {
     __MODEL_BASE__: JSON.stringify(command === "serve" ? "/models" : "https://huggingface.co/Supertone/supertonic-3/resolve/main"),
+    // Shown in the library, so a phone can tell which build it is running.
+    __APP_VERSION__: JSON.stringify(gitVersion()),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
   },
   server: { port: 5178, strictPort: true, headers: isolation },
   preview: { port: 5179, headers: isolation },

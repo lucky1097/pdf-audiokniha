@@ -1,4 +1,5 @@
 import type { Lang, Voice } from "@audiokniha/tts";
+import { diag } from "./diag.ts";
 import type { WorkerRequest, WorkerResponse } from "./tts-protocol.ts";
 
 export interface ModelState {
@@ -37,12 +38,16 @@ export class TtsClient {
   load(): Promise<void> {
     if (this.ready) return this.ready;
     this.set({ status: "loading", bytes: 0, error: undefined });
+    diag(`voice: loading (WebGPU ${"gpu" in navigator ? "available" : "missing"}, isolated ${self.crossOriginIsolated}, ${navigator.hardwareConcurrency} cores)`);
     this.worker = new Worker(new URL("../workers/tts.worker.ts", import.meta.url), { type: "module" });
+    this.worker.addEventListener("error", (e) => diag(`voice worker error: ${e.message}`));
     this.ready = new Promise((resolve, reject) => {
       this.worker!.onmessage = (e: MessageEvent<WorkerResponse>) => {
         const m = e.data;
         if (m.type === "progress") this.set({ bytes: m.bytes });
+        else if (m.type === "log") diag(`voice: ${m.message}`);
         else if (m.type === "ready") {
+          diag(`voice: ready on ${m.backend}`);
           this.set({ status: "ready", backend: m.backend, sampleRate: m.sampleRate, modelId: m.modelId });
           resolve();
         } else if (m.type === "audio") {
@@ -53,6 +58,7 @@ export class TtsClient {
             this.pending.get(m.id)!.reject(new Error(m.message));
             this.pending.delete(m.id);
           } else {
+            diag(`voice: failed: ${m.message}`);
             this.set({ status: "error", error: m.message });
             this.ready = null;
             reject(new Error(m.message));

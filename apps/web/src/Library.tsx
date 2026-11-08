@@ -1,6 +1,7 @@
 import { detectLang } from "@audiokniha/core";
 import { useEffect, useState } from "react";
 import { db } from "./lib/db.ts";
+import { clearDiag, diagLines, onDiag } from "./lib/diag.ts";
 import { importPdf } from "./lib/pdf.ts";
 import { chaptersFromText, newProject, type Project } from "./lib/project.ts";
 import { Cover } from "./ui/Cover.tsx";
@@ -130,6 +131,25 @@ export function Library({ onOpen, openId, onDeleted }: { onOpen: (id: string) =>
         </section>
       )}
       {books && books.length === 0 && <p className="empty">Zatiaľ tu nie je žiadna kniha. Začni pridaním PDF.</p>}
+      <About />
     </div>
+  );
+}
+
+const BUILT = new Date(__BUILD_TIME__).toLocaleString("sk-SK", { day: "numeric", month: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
+/** Which build is running, and the diagnostics log (kept across a crash) for problems on a phone. */
+function About() {
+  const [lines, setLines] = useState(diagLines);
+  useEffect(() => onDiag(setLines), []);
+  return (
+    <footer className="about">
+      <p>Verzia {__APP_VERSION__} · zostavená {BUILT}</p>
+      <details>
+        <summary>Diagnostika ({lines.length})</summary>
+        {lines.length > 0 ? <pre>{lines.join("\n")}</pre> : <p>Zatiaľ prázdna.</p>}
+        {lines.length > 0 && <button className="btn btn-quiet" onClick={clearDiag}>Vymazať</button>}
+      </details>
+    </footer>
   );
 }

@@ -8,7 +8,10 @@ interface Iterable {
 
 const proto = ReadableStream.prototype as unknown as Record<PropertyKey, unknown>;
 
-if (typeof proto[Symbol.asyncIterator] !== "function") {
+/** Whether this browser had the iterator itself, for the diagnostics log. */
+export const nativeStreamIterator = typeof proto[Symbol.asyncIterator] === "function";
+
+if (!nativeStreamIterator) {
   const values = function (this: Iterable, { preventCancel = false } = {}) {
     const reader = this.getReader();
     return {
@@ -30,5 +33,3 @@ if (typeof proto[Symbol.asyncIterator] !== "function") {
   Object.defineProperty(proto, "values", { value: values, writable: true, configurable: true });
   Object.defineProperty(proto, Symbol.asyncIterator, { value: values, writable: true, configurable: true });
 }
-
-export {};

@@ -60,6 +60,9 @@ button { cursor: pointer; }
 .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .hint { color: var(--ink-2); font-size: 15px; }
 .empty { color: var(--ink-2); padding: 24px 0; }
+.about { color: var(--ink-2); font-size: 13px; display: flex; flex-direction: column; gap: 8px; margin-top: 24px; }
+.about summary { cursor: pointer; width: fit-content; }
+.about pre { font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface); padding: 12px; border-radius: var(--r-s); margin: 8px 0; user-select: text; }
 .note-warn { color: var(--warn); background: var(--warn-soft); padding: 10px 14px; border-radius: var(--r-s); font-size: 15px; }
 .note-error { color: var(--error); font-size: 15px; }
 .spinner { animation: spin 0.9s linear infinite; flex: none; }
