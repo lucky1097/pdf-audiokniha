@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:site": "vite build --base ./ --outDir ../site/app --emptyOutDir",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -14,8 +15,8 @@
     "mediabunny": "1.62.1",
     "onnxruntime-web": "1.30.0",
     "pdfjs-dist": "6.4.299",
-    "react": "19.1.10",
-    "react-dom": "19.1.10"
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   },
   "license": "MIT",
   "devDependencies": {

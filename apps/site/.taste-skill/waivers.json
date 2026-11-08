@@ -1,0 +1,7 @@
+[
+  {
+    "check": "hero-lines",
+    "target": "section.hero h1",
+    "reason": "The h1 is final (\"Audiokniha z PDF priamo v prehliadači\", 37 characters) and sets in 3 lines at 1440; the 4 lines come from the check's 44-character fill, not the page's own headline."
+  }
+]

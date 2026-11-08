@@ -17,7 +17,8 @@ const FILES = [
 
 const post = (m: WorkerResponse, transfer: Transferable[] = []) => (self as unknown as Worker).postMessage(m, transfer);
 
-ort.env.wasm.wasmPaths = new URL("/ort/", self.location.origin).href;
+// Dev serves the files at /ort/; a build puts them in ort/ beside assets/, so the app also works under a sub-path (the promo site's app/).
+ort.env.wasm.wasmPaths = import.meta.env.DEV ? new URL("/ort/", self.location.origin).href : new URL(/* @vite-ignore */ "../ort/", import.meta.url).href;
 const threadsParam = new URL(self.location.href).searchParams.get("threads");
 ort.env.wasm.numThreads = threadsParam ? Number(threadsParam) : self.crossOriginIsolated ? Math.min(8, navigator.hardwareConcurrency || 4) : 1;
 

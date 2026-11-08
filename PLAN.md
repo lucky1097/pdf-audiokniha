@@ -200,10 +200,26 @@ Každá fáza končí niečím, čo sa dá vyskúšať. Najprv funkčnosť, poto
 - Landing page s ukážkami hlasov v SK a EN, súkromím ako hlavným argumentom, odkazom na App Store a GitHub.
 - Overenie jeho kontrolou v skutočnom prehliadači.
 
+**Stav po fáze 4 (2026-11-08):** `apps/site/index.html`, statická stránka z kitu taste-skill (`apps/site/assets`).
+- Rozdané: hero split, nav-centre, footer-statement, close-type, tlačidlá arrow, značka ring, podklad sand, moment letters-assemble; farby a písmo appky (Chivo).
+- Sekcie: hero s prehrávačom → editor (app-frame) → súkromie (výrok + stav appky) → 4 skutočné nahrávky → otázky → 3 kroky → záver.
+- Appka sa stavia do `apps/site/app` príkazom `npm run build:site -w @audiokniha/web` (relatívne cesty; worker berie `ort/` vedľa `assets/`). Priečinok je v .gitignore, nasadenie ho musí postaviť.
+- `apps/site/_headers` pridá COOP/COEP pre `/app/*` (Cloudflare Pages / Netlify). Bez nich appka beží na WebGPU alebo na jednom vlákne CPU.
+- Kontroly: copy-lint 0/0, perf 0/0, `gate.mjs` PASS s jednou výnimkou (hero-lines, `.taste-skill/waivers.json`). `check.mjs` potrebuje `CHROME_PATH` na Edge, Chrome tu nie je.
+- Chýba: doména (canonical), odkaz na GitHub a App Store, keď budú.
+
 ### Fáza 5: iOS appka
 
 - Expo, natívny sherpa-onnx modul, PDFKit import, prehrávač s uzamknutou obrazovkou, generovanie počas prehrávania.
 - TestFlight, potom App Store.
+
+**Zmena plánu a stav (2026-11-08):** namiesto sherpa-onnx a PDFKit:
+- **Hlas:** onnxruntime-react-native 1.24 (JSI, nová architektúra, Expo plugin). Rovnaké API ako na webe, takže beží ten istý `SupertonicEngine` a výsledok je rovnaký.
+- **PDF:** pdf.js v skrytom WebView (vložený pri inštalácii, funguje offline), rovnaké čítanie strán ako na webe. Netreba Swift, ktorý by sa dal skúšať iba buildmi v cloude.
+- **Model knihy:** `project.ts` sa presunul do `packages/core`, takže web aj mobil majú rovnaké vety, kľúče a seedy.
+- **Appka:** `apps/mobile` (Expo 58, React 19.3, RN 0.88). Web prešiel na React 19.3, aby bola v monorepe jedna verzia.
+- **Overené bez iPhonu:** typecheck a Metro bundle pre iOS (Hermes). Na zariadení zatiaľ nič. Postup inštalácie je v `apps/mobile/README.md` (EAS development build + server cez Wi‑Fi).
+- **Ďalej:** výkon na iPhone (RTF, prípadne CoreML), export .m4b, slovník, TestFlight.
 
 ### Fáza 6: rozšírenia
 

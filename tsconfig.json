@@ -3,7 +3,10 @@
     "target": "es2024",
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "lib": ["es2024", "dom"],
+    "lib": [
+      "es2024",
+      "dom"
+    ],
     "strict": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
@@ -11,7 +14,16 @@
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "jsx": "react-jsx",
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["packages/*/src", "packages/*/test", "apps/*/src"]
+  "include": [
+    "packages/*/src",
+    "packages/*/test",
+    "apps/*/src"
+  ],
+  "exclude": [
+    "apps/mobile"
+  ]
 }

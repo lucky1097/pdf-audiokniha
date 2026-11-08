@@ -1,5 +1,5 @@
 import { createReadStream, existsSync, statSync } from "node:fs";
-import { copyFile, mkdir, readdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
@@ -42,7 +42,15 @@ function ortFiles(): Plugin {
     async writeBundle(options) {
       const out = join(options.dir!, "ort");
       await mkdir(out, { recursive: true });
-      for (const f of await readdir(ORT_DIST)) if (/^ort-wasm-simd-threaded\.jsep\.(mjs|wasm)$/.test(f)) await copyFile(join(ORT_DIST, f), join(out, f));
+      // Copy exactly the runtime files the webgpu bundle asks for (1.30 loads the asyncify build; older versions jsep),
+      // read from the bundle itself so an onnxruntime upgrade cannot leave the build without them.
+      const bundle = await readFile(join(ORT_DIST, "ort.webgpu.bundle.min.mjs"), "utf8");
+      const wanted = new Set<string>();
+      for (const [name] of bundle.matchAll(/ort-wasm-simd-threaded[\w.]*\.mjs/g)) wanted.add(name).add(name.replace(/\.mjs$/, ".wasm"));
+      const have = new Set(await readdir(ORT_DIST));
+      const missing = [...wanted].filter((f) => !have.has(f));
+      if (!wanted.size || missing.length) throw new Error(`ort-files: runtime files not found in onnxruntime-web/dist: ${missing.join(", ") || "none named in the bundle"}`);
+      for (const f of wanted) await copyFile(join(ORT_DIST, f), join(out, f));
     },
   };
 }

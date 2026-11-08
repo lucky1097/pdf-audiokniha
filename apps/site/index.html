@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="sk" data-type="software" data-radius="soft" data-ground="sand" data-buttons="arrow" data-motion>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Audiokniha: audioknihy z PDF priamo v prehliadači</title>
+<meta name="description" content="Nahraj PDF a počúvaj ho ako audioknihu. Hlas vzniká vo tvojom počítači, po slovensky aj po anglicky, zadarmo.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Audiokniha: audioknihy z PDF priamo v prehliadači">
+<meta property="og:description" content="Hlas vzniká vo tvojom počítači, text knihy nikam neodchádza.">
+<meta property="og:image" content="share.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#ffffff">
+<!-- <link rel="canonical" href="https://[the client's domain]/"> : no domain yet -->
+<meta name="site-kind" content="software">
+<meta name="page-type" content="software">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400..700&family=Chivo+Mono:wght@400..500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/system.css">
+<link rel="stylesheet" href="assets/ui/cards.css">
+<link rel="stylesheet" href="assets/motion/motion.css">
+<link rel="stylesheet" href="assets/backgrounds/backgrounds.css">
+<link rel="stylesheet" href="assets/layout/layout.css">
+<link rel="stylesheet" href="assets/icons/icon.css">
+<style>
+:root {
+  --p-bg: #ffffff; --p-surface: #f4f5f7; --p-ink: #111827; --p-muted: #4b5563;
+  --p-accent: #c2410c; --p-accent-ink: #ffffff; --p-action: #c2410c; --p-action-ink: #ffffff;
+  --p-inv-bg: #111827; --p-inv-surface: #1e2534; --p-inv-ink: #ffffff; --p-inv-muted: #9b9ea6;
+  --p-inv-accent: #c2410c; --p-inv-accent-ink: #ffffff; --p-inv-action: #c2410c; --p-inv-action-ink: #ffffff;
+  --font-display: "Chivo", system-ui, sans-serif;
+  --font-text: "Chivo", system-ui, sans-serif;
+  --font-mono: "Chivo Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --display-weight: 400;
+  --display-tracking: -0.03em;
+  --display-tracking-xl: -0.04em;
+  --ly-scale: 0.96;
+}
+</style>
+<link rel="stylesheet" href="assets/ui/base.css">
+<script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
+<script src="assets/backgrounds/backgrounds.js"></script>
+<script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
+<link rel="modulepreload" href="assets/moments/moments.js">
+<link rel="modulepreload" href="assets/moments/lib.js">
+<link rel="modulepreload" href="assets/moments/letters-assemble/moment.js">
+<!-- page CSS: only inside the visuals (the app's own UI drawn as live HTML), plus one --p-h per card group -->
+<style>
+  /* the app's tokens, as DESIGN.md records them */
+  .ak { --ak-bg: #ffffff; --ak-surface: #f4f5f7; --ak-ink: #111827; --ak-ink2: #4b5563; --ak-line: #e5e7eb; --ak-acc: #c2410c; --ak-soft: #ffedd5; --ak-warn: #fef3c7; font: 15px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif; color: var(--ak-ink); }
+  .ak-cover { aspect-ratio: 1; border-radius: 10px; color: #fff; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; padding: 18px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; background: hsl(312 45% 30%); }
+  .ak-cover small { font-weight: 400; opacity: .85; font-size: .75em; letter-spacing: 0; }
+
+  /* hero: the player as the app shows it */
+  /* the player sits high in the frame, so the floating status card at its foot covers nothing */
+  .hero__media.ak { display: flex; flex-direction: column; justify-content: flex-start; align-items: center; gap: 20px; padding: 48px 56px 120px; background: var(--ak-surface); }
+  .ak-player { width: min(100%, 320px); display: grid; gap: 18px; }
+  .ak-player .ak-cover { width: 100%; font-size: 30px; padding: 28px; box-shadow: 0 8px 24px rgba(17,24,39,.12); }
+  .ak-titles { text-align: center; }
+  .ak-titles b { display: block; font-size: 19px; }
+  .ak-titles span { color: var(--ak-ink2); font-size: 14px; }
+  .ak-bar { height: 6px; border-radius: 3px; background: var(--ak-line); position: relative; }
+  .ak-bar i { position: absolute; inset: 0 62% 0 0; border-radius: 3px; background: var(--ak-acc); }
+  .ak-bar i::after { content: ""; position: absolute; right: -8px; top: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--ak-acc); border: 3px solid var(--ak-surface); }
+  .ak-meta { display: flex; justify-content: space-between; color: var(--ak-ink2); font-size: 13px; font-variant-numeric: tabular-nums; margin-top: -8px; }
+  .ak-transport { display: flex; justify-content: center; align-items: center; gap: 32px; color: var(--ak-ink); }
+  .ak-play { width: 64px; height: 64px; border-radius: 50%; background: var(--ak-acc); color: #fff; display: grid; place-items: center; }
+
+  /* app-frame: chapters beside the chapter text */
+  .app.ui { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); margin-top: var(--s-7); background: var(--u-bg); border: 1px solid var(--u-border); border-radius: var(--u-r); box-shadow: var(--u-shadow); }
+  .app > .app__pane { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+  .app > .app__pane + .app__pane { border-left: 1px solid var(--u-line); }
+  .app > .app__pane::after { content: ""; position: absolute; inset: auto 0 0 0; height: 64px; background: linear-gradient(transparent, var(--u-bg)); pointer-events: none; }
+  @media (min-width: 1024px) and (max-width: 1279px) { .app.ui { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); } }
+  @media (max-width: 1023px) {
+    .app.ui { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+    .app > .app__pane--list { max-height: 252px; }
+    .app > .app__pane--list::after { display: none; }
+    .app > .app__pane + .app__pane { border-left: 0; border-top: 1px solid var(--u-line); }
+  }
+  @media (max-width: 639px) {
+    .app.ui { grid-template-rows: minmax(0, 1fr); }
+    .app > .app__pane--list { display: none; }
+    .app > .app__pane + .app__pane { border-top: 0; }
+  }
+  .ak-pane-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--ak-line); font-weight: 700; }
+  .ak-pane-head span { font-weight: 400; color: var(--ak-ink2); font-size: 13px; }
+  .ak-chapters { list-style: none; margin: 0; padding: 0; }
+  .ak-chapters li { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--ak-line); }
+  .ak-chapters li b { font-weight: 600; }
+  .ak-chapters li i { font-style: normal; color: var(--ak-ink2); font-variant-numeric: tabular-nums; }
+  .ak-chapters li em { font-style: normal; font-size: 13px; color: var(--ak-ink2); white-space: nowrap; }
+  .ak-chapters li.cur { background: var(--ak-soft); }
+  .ak-chapters li.cur b, .ak-chapters li.cur i { color: var(--ak-acc); }
+  .ak-chapters li .ok { color: #15803d; }
+  .ak-text { padding: 12px 16px; display: grid; gap: 2px; }
+  .ak-sent { display: grid; grid-template-columns: 26px 1fr auto; gap: 12px; align-items: start; padding: 8px 10px; border-radius: 8px; line-height: 1.6; }
+  .ak-sent > i { width: 26px; height: 26px; border-radius: 50%; background: var(--ak-surface); display: grid; place-items: center; margin-top: 1px; }
+  .ak-sent > i::before { content: ""; border-left: 8px solid var(--ak-ink); border-top: 5px solid transparent; border-bottom: 5px solid transparent; margin-left: 2px; }
+  .ak-sent.now { background: var(--ak-soft); }
+  .ak-sent.now mark { background: #fed7aa; }
+  .ak-sent.now > i { background: var(--ak-acc); }
+  .ak-sent.now > i::before { border-left-color: #fff; }
+  .ak-sent.todo > i { background: none; border: 1.5px dashed var(--ak-line); }
+  .ak-sent mark { background: var(--ak-soft); color: inherit; border-radius: 4px; padding: 0 3px; }
+  .ak-sent mark.unsure { background: var(--ak-warn); box-shadow: inset 0 -2px 0 #92400e; }
+  .ak-sent > u { text-decoration: none; font-size: 12px; color: var(--ak-ink2); border: 1px solid var(--ak-line); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+  .ak-title { font-size: 19px; font-weight: 700; padding: 8px 10px 4px; }
+
+  /* samples: four real recordings in one list, as the app plays them */
+  .ak-tracks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-block: 1px solid var(--line); }
+  .ak-track { display: grid; gap: 14px; align-content: start; padding: 28px 0; }
+  .ak-track:nth-child(odd) { padding-right: 32px; }
+  .ak-track:nth-child(even) { padding-left: 32px; }
+  .ak-track:nth-child(even) { border-left: 1px solid var(--line); }
+  .ak-track:nth-child(n + 3) { border-top: 1px solid var(--line); }
+  .ak-track__head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .ak-track__head h3 { margin: 0; font-size: var(--t-body, 17px); font-weight: 600; letter-spacing: 0; }
+  .ak-track__head span { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .ak-track p { margin: 0; font-size: 18px; line-height: 1.55; min-height: 3.1em; }
+  .ak-track mark { background: #ffedd5; color: inherit; border-radius: 4px; padding: 0 3px; }
+  .ak-track audio { width: 100%; height: 44px; accent-color: #c2410c; }
+  @media (max-width: 719px) { .ak-tracks { grid-template-columns: minmax(0, 1fr); } .ak-track:nth-child(even) { border-left: 0; } .ak-track:nth-child(n + 2) { border-top: 1px solid var(--line); } .ak-track:nth-child(n) { padding: 20px 0; } }
+  /* privacy: what stays on the device, as the app shows it */
+  .ak-status { display: grid; margin-top: var(--s-6); align-self: start; border: 1px solid var(--line); border-radius: var(--r-lg, 16px); background: var(--surface); max-width: 420px; }
+  .ak-status div { display: flex; justify-content: space-between; gap: 16px; padding: 14px 20px; font-size: 15px; }
+  .ak-status div + div { border-top: 1px solid var(--line); }
+  .ak-status b { font-weight: 500; }
+  .ak-status span { color: var(--muted); text-align: right; }
+  .ak-status .ok { color: #15803d; }
+  /* the FAQ on one screen: a tablet drops the browser question and two status rows; a phone shows four questions, text only */
+  @media (max-width: 1023px) { .faq__item--desk { display: none; } }
+  @media (max-width: 639px) { .faq__item--tab { display: none; } .footer__lede { display: none; } }
+  /* stacked, the questions are told apart by air: a rule across the whole column reads as a section edge */
+  @media (max-width: 1023px) { #faq .faq__item { border-bottom-color: transparent; } }
+  /* a phone: the four recordings share the section's two screens */
+  @media (max-width: 639px) { #ukazky .ak-tracks { flex: 1 1 auto; grid-auto-rows: 1fr; } #ukazky .ak-track { align-content: center; } .ak-track p { min-height: 0; } }
+  /* a button that wraps under the first starts on the text line, not 8px in */
+  .hero .btn-row .btn--secondary { padding-inline-start: 0; }
+  /* the hero player on a phone: the mini player of the app, cover beside the titles, so it fits the frame whole */
+  @media (max-width: 639px) {
+    .hero__media.ak { justify-content: center; padding: 24px; }
+    .hero__media.ak .ly-float { display: none; }
+    .ak-player { width: 100%; grid-template-columns: 88px minmax(0, 1fr); gap: 14px; align-items: center; }
+    .ak-player .ak-cover { font-size: 12px; padding: 10px; box-shadow: none; }
+    .ak-player .ak-cover small { display: none; }
+    .ak-titles { text-align: left; }
+    .ak-titles b { font-size: 17px; }
+    .ak-bar, .ak-meta, .ak-transport { grid-column: 1 / -1; }
+    .ak-meta { margin-top: -4px; }
+    .ak-play { width: 52px; height: 52px; }
+  }
+  /* under 360px the bar keeps the logo and the menu; the main action is in the menu */
+  @media (max-width: 359px) { .nav:not(.is-open) .nav__actions { display: none; } .nav:not(.is-open) .nav__toggle { margin-left: auto; } }
+  /* a tablet stacks the three steps, one per row: they take two screens there, as on a phone */
+  @media (min-width: 640px) and (max-width: 1023px) { #ako { --h: 2; } }
+  /* the steps' row runs down to the section's foot, its panels growing, so no empty strip sits under them */
+  #ako .wrap > .grid { flex: 1 1 auto; }
+  .section-head > .link { justify-self: start; }
+  /* tablet and phone: the FAQ keeps its status card, without the licence line */
+  @media (max-width: 1023px) { #faq .span-5 > p.muted { display: none; } .ak-status div { padding: 10px 16px; } }
+  @media (max-width: 359px) { .closing__cta .btn { font-size: var(--t-body); padding-inline: var(--s-4); } }
+
+  /* steps: one small piece of the app per step */
+  #ako .panel { --p-h: 320px; }
+  @media (max-width: 639px) { #ako .panel { --p-h: 180px; } }
+  .ak-step { position: absolute; inset: 0; display: grid; align-content: center; gap: 12px; padding: 28px; font-size: 15px; }
+  .ak-rows { display: grid; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; }
+  .ak-rows div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 14px; }
+  .ak-rows div + div { border-top: 1px solid #e5e7eb; }
+  .ak-rows span { color: #4b5563; }
+  .ak-btn { justify-self: start; background: #c2410c; color: #fff; border-radius: 10px; padding: 10px 16px; font-weight: 600; font-size: 14px; }
+  @media (max-width: 639px) { .ak-step { padding: 20px; } .ak-step .ak-rows, .ak-step .ak-btn, .ak-step .ak-dict { display: none; } }
+  .ak-file { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; }
+  .ak-file svg { flex: none; }
+  .ak-file b { display: block; font-weight: 600; font-size: 15px; }
+  .ak-file span { color: #4b5563; font-size: 13px; }
+  .ak-pill { display: inline-flex; align-items: center; gap: 8px; justify-self: start; background: #fff; border: 1px solid #e5e7eb; border-radius: 999px; padding: 6px 12px; font-size: 13px; }
+  .ak-pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #15803d; }
+  .ak-mini { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; font-size: 15px; line-height: 1.6; }
+  .ak-mini mark { background: #ffedd5; color: inherit; border-radius: 4px; padding: 0 3px; }
+  .ak-export { display: grid; gap: 8px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+  .ak-export b { font-size: 15px; }
+  .ak-export div { display: flex; justify-content: space-between; color: #4b5563; border-top: 1px solid #e5e7eb; padding-top: 8px; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<!-- type: software
+     deal: hero split, nav nav-centre (dealt nav-cards; no photographs for its cards, re-dealt per sections.md 2), close close-type, footer footer-statement, rhythm space, buttons arrow, mark ring, grounds none (lit ground sand for the footer)
+     palette: the client's own (brand): the app's white ground, ink #111827 and orange #c2410c from DESIGN.md
+     type: chivo (Chivo + Chivo Mono)
+     moments: letters-assemble in #sukromie (its own statement section) -->
+
+<header class="nav nav--centre">
+  <div class="wrap nav__bar">
+    <a class="skip-link" href="#top">Preskočiť na obsah</a>
+    <a class="nav__logo" href="#top"><span class="mark" data-mark="ring" aria-hidden="true"></span>Audiokniha</a>
+    <nav class="nav__links" aria-label="Hlavná navigácia">
+      <div class="nav__item"><a class="nav__link" href="#editor">Editor</a></div>
+      <div class="nav__item"><a class="nav__link" href="#sukromie">Súkromie</a></div>
+      <div class="nav__item"><a class="nav__link" href="#ukazky">Ukážky</a></div>
+      <div class="nav__item"><a class="nav__link" href="#faq">Otázky</a></div>
+    </nav>
+    <div class="nav__actions">
+      <a class="btn btn--primary" href="app/">Otvoriť appku<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+    </div>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero hero--split" data-enter aria-labelledby="hero-h">
+    <div class="wrap"><div class="hero-text grid hero__grid">
+      <div class="hero__text span-5">
+        <h1 id="hero-h">Audiokniha z PDF priamo v prehliadači</h1>
+        <p class="hero__lead">Nahraj PDF alebo text a o pár minút počúvaš. Hlas vzniká vo tvojom počítači, takže kniha nikam neodchádza. Po slovensky aj po anglicky, zadarmo. V Chrome alebo Edge trvá hodina knihy asi 5 minút.</p>
+        <div class="btn-row"><a class="btn btn--primary" href="app/">Vyskúšať v prehliadači<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a><a class="btn btn--secondary" href="#ukazky">Vypočuť ukážky</a></div>
+      </div>
+      <div class="hero__media span-6 start-7 ak" role="img" aria-label="Prehrávač appky Audiokniha: kniha Návrat do mesta, kapitola Dom na konci ulice">
+        <div class="ak-player" aria-hidden="true">
+          <div class="ak-cover">Návrat do mesta<small>Kapitola 2</small></div>
+          <div class="ak-titles"><b>Dom na konci ulice</b><span>Návrat do mesta</span></div>
+          <div class="ak-bar"><i></i></div>
+          <div class="ak-meta"><span>6:12</span><span>Veta 38 z 96</span><span>−9:47</span></div>
+          <div class="ak-transport">
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M18 5v14L8 12z" fill="currentColor"/><path d="M6 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span class="ak-play"><svg width="28" height="28" viewBox="0 0 24 24"><rect x="6" y="4.5" width="4" height="15" rx="1" fill="currentColor"/><rect x="14" y="4.5" width="4" height="15" rx="1" fill="currentColor"/></svg></span>
+            <svg width="24" height="24" viewBox="0 0 24 24"><path d="M6 5v14l10-7z" fill="currentColor"/><path d="M18 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+        <div class="ly-float" aria-hidden="true">
+          <div class="ly-float__row"><span class="ly-live">Pripravujem hlas</span><span>Kapitola 3</span></div>
+          <div class="ly-float__title">Zostáva asi 4 minúty</div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="section" id="editor" aria-labelledby="editor-h">
+    <div class="wrap">
+      <div class="grid">
+        <h2 id="editor-h" class="span-5">Každú vetu audioknihy vypočuješ a opravíš</h2>
+        <div class="span-6 start-7 stack-4">
+          <p class="muted">Pri každej kapitole vidíš, koľko je pripravené. Text ukazuje, ako ho hlas prečíta: čísla a skratky už prepísané na slová. Zle prečítanú vetu vygeneruješ znova jedným klikom.</p>
+          <a class="link" href="#ukazky">Vypočuť, ako čítame čísla</a>
+        </div>
+      </div>
+      <div class="ui app fill ak" role="img" aria-label="Editor appky: zoznam kapitol vedľa textu kapitoly Dom na konci ulice, v ktorom sú čísla prepísané na slová">
+        <div class="app__pane app__pane--list" aria-hidden="true"><div data-ui="">
+          <div class="ak-pane-head">Návrat do mesta <span>9 kapitol · asi 2 h 10 min</span></div>
+          <ul class="ak-chapters">
+            <li><i>1</i><b>Príchod vlakom</b><em class="ok">Pripravená</em></li>
+            <li class="cur"><i>2</i><b>Dom na konci ulice</b><em>61 z 96 viet</em></li>
+            <li><i>3</i><b>Stará lekáreň</b><em>Čaká</em></li>
+            <li><i>4</i><b>Povodeň</b><em>Čaká</em></li>
+            <li><i>5</i><b>Zošit s menami</b><em>Čaká</em></li>
+            <li><i>6</i><b>Večer pri stanici</b><em>Čaká</em></li>
+            <li><i>7</i><b>List z Bratislavy</b><em>Čaká</em></li>
+            <li><i>8</i><b>Jarmok</b><em>Čaká</em></li>
+            <li><i>9</i><b>Návrat</b><em>Čaká</em></li>
+            <li><i>10</i><b>Doslov</b><em>Čaká</em></li>
+          </ul>
+        </div></div>
+        <div class="app__pane app__pane--open" aria-hidden="true"><div data-ui="">
+          <div class="ak-pane-head">Kapitola 2 <span>Ukázať, čo sa prepísalo: zapnuté</span></div>
+          <div class="ak-text">
+            <p class="ak-title">Dom na konci ulice</p>
+            <div class="ak-sent"><i></i><span>Dom stál na konci ulice, obrastený divým viničom.</span><u>Znova</u></div>
+            <div class="ak-sent now"><i></i><span>Na bránke visela hrdzavá reťaz z roku <mark>tisíc deväťsto osemdesiat šesť</mark>.</span><u>Znova</u></div>
+            <div class="ak-sent"><i></i><span>Na schránke stálo <mark>číslo dvanásť</mark>, vyryté do mosadze.</span><u>Znova</u></div>
+            <div class="ak-sent"><i></i><span>Vlak odchádzal <mark>pätnásteho marca</mark> o <mark>sedem štyridsaťpäť</mark>.</span><u>Znova</u></div>
+            <div class="ak-sent todo"><i></i><span>Lístok stál <mark>dvanásť eur päťdesiat centov</mark>, <mark>to jest</mark> o <mark>tridsať percent</mark> viac.</span></div>
+            <div class="ak-sent todo"><i></i><span>Kniha o dejinách Uhorska v <mark class="unsure">devätnástom</mark> storočí ležala na stole.</span></div>
+            <div class="ak-sent todo"><i></i><span>Večer sedela v malej kaviarni pri stanici a písala do zošita všetko, čo si zapamätala.</span></div>
+            <div class="ak-sent todo"><i></i><span>Mená susedov, farbu okeníc, vôňu chleba aj hlas starého pána.</span></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="sukromie" data-moment="letters-assemble" aria-labelledby="sukromie-h">
+    <div class="wrap">
+      <h2 id="sukromie-h" class="mo-la__type">Tvoje PDF zostáva u teba</h2>
+      <div class="grid grid--top">
+        <p class="mo-la__sub span-6">Hlasový model sa stiahne raz, asi 380&nbsp;MB. Potom hlas vzniká v prehliadači a text ani zvuk sa neposielajú na žiadny server. Appka funguje bez účtu.</p>
+            <div class="ak-status span-5 start-8" data-ui="" role="img" aria-label="Stav v appke: hlasový model uložený v prehliadači, 380 MB, internet iba prvýkrát, bez účtu, nič sa neodosiela na server">
+              <div><b>Hlasový model</b><span>V prehliadači, 380&nbsp;MB</span></div>
+              <div><b>Internet</b><span class="ok">Iba prvýkrát</span></div>
+              <div><b>Účet</b><span>Žiadny</span></div>
+              <div><b>Odoslané na server</b><span>0&nbsp;B</span></div>
+            </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ukazky" style="--hm: 2" aria-labelledby="ukazky-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="ukazky-h">Ukážky audioknihy</h2>
+        <p class="muted">Štyri nahrávky z appky, bez úprav. Čísla, dátumy a ceny sa pred čítaním prepíšu na slová.</p>
+        <a class="link" href="app/">Nahrať PDF</a>
+      </div>
+      <div class="ak-tracks" data-ui="">
+        <div class="ak-track">
+          <div class="ak-track__head"><h3>Slovenská audiokniha</h3><span>Ženský hlas 4</span></div>
+          <p lang="sk">Keď Jana vystúpila z vlaku, mesto ešte spalo. Nad strechami visela riedka hmla…</p>
+          <audio controls preload="none" src="audio/sk-proza.mp3" aria-label="Ukážka: slovenská próza, ženský hlas"></audio>
+        </div>
+        <div class="ak-track">
+          <div class="ak-track__head"><h3>Čísla v audioknihe</h3><span>Ženský hlas 4</span></div>
+          <p lang="sk">Ráno <mark>15.&nbsp;marca 2024</mark> bolo v Žiline asi <mark>3&nbsp;°C</mark>. Stála <mark>12,50&nbsp;€</mark>…</p>
+          <audio controls preload="none" src="audio/sk-cisla.mp3" aria-label="Ukážka: slovenský text s dátumom, teplotou a cenou"></audio>
+        </div>
+        <div class="ak-track">
+          <div class="ak-track__head"><h3>Anglická audiokniha</h3><span>Ženský hlas 4</span></div>
+          <p lang="en">The rain had stopped by the time Clara reached the old lighthouse…</p>
+          <audio controls preload="none" src="audio/en-prose.mp3" aria-label="Ukážka: anglická próza, ženský hlas"></audio>
+        </div>
+        <div class="ak-track">
+          <div class="ak-track__head"><h3>1 z 10 hlasov</h3><span>Mužský hlas 2</span></div>
+          <p lang="en">Doctor Evans paid <mark>$1,250.75</mark> for a <mark>1.5&nbsp;kg</mark> brass compass…</p>
+          <audio controls preload="none" src="audio/en-numbers.mp3" aria-label="Ukážka: anglický text s cenou, mužský hlas"></audio>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq" aria-labelledby="faq-h">
+    <div class="wrap">
+      <div class="grid grid--top">
+        <div class="span-5 stack-4">
+          <h2 id="faq-h">Otázky o audioknihe</h2>
+          <p class="muted">Otvorený softvér pod licenciou MIT.</p>
+        </div>
+        <div class="faq span-6 start-7">
+          <div class="faq__item"><h3>Koľko stojí aplikácia?</h3><p>Nič. Je bez účtu aj predplatného.</p></div>
+          <div class="faq__item faq__item--tab"><h3>Ako dlho sa audiokniha pripravuje?</h3><p>S grafickou kartou asi 5 minút na hodinu knihy. Počúvať môžeš hneď.</p></div>
+          <div class="faq__item faq__item--desk"><h3>V ktorých prehliadačoch aplikácia beží?</h3><p>Najrýchlejšie v Chrome a Edge. Ostatné použijú procesor.</p></div>
+          <div class="faq__item"><h3>Prečíta aplikácia naskenované PDF?</h3><p>Zatiaľ nie. Sken bez textu rozpozná a povie ti to.</p></div>
+          <div class="faq__item"><h3>Bude aplikácia aj pre iPhone?</h3><p>Áno, pripravujeme ju.</p></div>
+          <div class="faq__item"><h3>Smiem audioknihu zverejniť?</h3><p>Áno, s označením, že hlas vytvorila umelá inteligencia.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section" id="ako" style="--hm: 2" aria-labelledby="ako-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="ako-h">Audiokniha v 3 krokoch</h2>
+      </div>
+      <div class="grid">
+        <article class="card card--row card--open span-4">
+          <span class="step-num">1</span>
+          <h3>Nahraj PDF</h3>
+          <p>Appka nájde kapitoly a vynechá čísla strán, hlavičky a poznámky pod čiarou.</p>
+          <div class="panel">
+            <div class="ak-step" data-ui="" aria-hidden="true">
+              <div class="ak-file"><svg width="28" height="34" viewBox="0 0 28 34"><path d="M2 2h16l8 8v22H2z" fill="#fff" stroke="#c2410c" stroke-width="2"/><path d="M18 2v8h8" fill="none" stroke="#c2410c" stroke-width="2"/><text x="14" y="26" text-anchor="middle" font-size="7" font-weight="700" fill="#c2410c" font-family="system-ui">PDF</text></svg><span><b>navrat-do-mesta.pdf</b><span>212 strán</span></span></div>
+              <span class="ak-pill">Našiel som 10 kapitol</span>
+              <div class="ak-rows"><div><b>1 Príchod vlakom</b><span>s. 7</span></div><div><b>2 Dom na konci ulice</b><span>s. 24</span></div><div><b>3 Stará lekáreň</b><span>s. 41</span></div></div>
+            </div>
+          </div>
+        </article>
+        <article class="card card--row card--open span-4">
+          <span class="step-num">2</span>
+          <h3>Skontroluj text audioknihy</h3>
+          <p>Vidíš, čo sa prepísalo na slová, a mená doplníš do slovníka výslovnosti.</p>
+          <div class="panel">
+            <div class="ak-step" data-ui="" aria-hidden="true">
+              <div class="ak-mini">Vlak odchádzal <mark>pätnásteho marca</mark> o <mark>sedem štyridsaťpäť</mark>.</div>
+              <div class="ak-rows ak-dict"><div><b>Slovník výslovnosti</b><span>2 slová</span></div><div><b>Didolićová</b><span>Didoličová</span></div><div><b>Uhorsko</b><span>Uhorsko</span></div></div>
+            </div>
+          </div>
+        </article>
+        <article class="card card--row card--open span-4">
+          <span class="step-num">3</span>
+          <h3>Počúvaj alebo exportuj audioknihu</h3>
+          <p>Prehrávaj v appke, alebo si stiahni súbor .m4b s kapitolami.</p>
+          <div class="panel">
+            <div class="ak-step" data-ui="" aria-hidden="true">
+              <div class="ak-export"><b>Návrat do mesta.m4b</b><div><span>10 kapitol</span><span>2 h 10 min</span></div><div><span>Veľkosť</span><span>54 MB</span></div></div>
+              <span class="ak-btn">Stiahnuť .m4b</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer closing footer--statement" id="contact" aria-labelledby="close-h">
+  <div class="wrap">
+    <div class="closing__cta close--type">
+      <div class="section-head">
+        <h2 id="close-h">Vypočuj si svoje PDF ešte dnes</h2>
+        <p class="t-small muted">Zadarmo a bez účtu. Najrýchlejšie v Chrome alebo Edge.</p>
+      </div>
+      <a class="btn btn--primary btn--xl btn--wide" href="app/">Vyskúšať v prehliadači<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+    </div>
+    <div class="closing__links">
+      <div class="grid">
+        <div class="span-4 stack-4">
+          <a class="nav__logo" href="#top"><span class="mark" data-mark="ring" aria-hidden="true"></span>Audiokniha</a>
+          <p class="footer__lede">Z PDF audiokniha, s hlasom priamo v tvojom zariadení.</p>
+        </div>
+        <div class="span-2 footer__col"><h3>Appka</h3><ul><li><a href="app/">Otvoriť appku</a></li><li><a href="#editor">Editor</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Hlas</h3><ul><li><a href="#ukazky">Ukážky</a></li><li><a href="#sukromie">Súkromie</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Pomoc</h3><ul><li><a href="#ako">Ako to funguje</a></li><li><a href="#faq">Otázky</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Licencie</h3><ul><li>Kód: MIT</li><li>Hlas: Supertonic 3, OpenRAIL-M</li></ul></div>
+      </div>
+      <div class="footer__legal">
+        <span>&copy; 2026 Audiokniha</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="assets/system.js"></script>
+<script type="module" src="assets/motion/motion.js"></script>
+<script type="module" src="assets/layout/layout.js"></script>
+</body>
+</html>

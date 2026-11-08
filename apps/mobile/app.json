@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Audiokniha",
+    "slug": "audiokniha",
+    "scheme": "audiokniha",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.lucky1097.audiokniha",
+      "supportsTablet": false,
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"],
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "plugins": [
+      "onnxruntime-react-native",
+      ["expo-audio", { "microphonePermission": false, "recordAudioAndroid": false }],
+      ["expo-build-properties", { "ios": { "deploymentTarget": "17.0" } }]
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+ "page": "index.html",
+ "url": null,
+ "root": null,
+ "kind": "software",
+ "category": "aplikácia, ktorá z PDF urobí audioknihu",
+ "primary": "Vyskúšať v prehliadači",
+ "rounds": 3,
+ "start": "2026-11-08T11:52:07.087Z",
+ "by": "gate.mjs --start"
+}

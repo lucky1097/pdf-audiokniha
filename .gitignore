@@ -9,3 +9,53 @@ apps/*/dist/
 spike/**/*.wav
 spike/phase2/out/
 .impeccable/review/
+
+# built web app, made by: npm run build:site -w @audiokniha/web
+apps/site/app/
+apps/site/.taste-skill/chrome-*/
+
+# mobile: generated pdf.js embed, Expo caches, native folders (Expo prebuild makes them on EAS)
+apps/mobile/src/generated/
+apps/mobile/.expo/
+apps/mobile/.expo-export/
+apps/mobile/ios/
+apps/mobile/android/
+# taste-skill check output (screenshots, reports); the deal histories and waivers stay
+apps/site/.taste-skill/consistency/
+apps/site/.taste-skill/shots/
+apps/site/.taste-skill/*.txt
+apps/site/.taste-skill/gate/
+# taste-skill kit: the whole kit stays here for the skill's checks; only the files the page loads are committed
+# (from the browser's resource list), with the kit's MIT licence.
+apps/site/assets/*
+!apps/site/assets/LICENSE
+!apps/site/assets/system.css
+!apps/site/assets/system.js
+!apps/site/assets/backgrounds/
+apps/site/assets/backgrounds/*
+!apps/site/assets/backgrounds/backgrounds.css
+!apps/site/assets/backgrounds/backgrounds.js
+!apps/site/assets/icons/
+apps/site/assets/icons/*
+!apps/site/assets/icons/icon.css
+!apps/site/assets/layout/
+apps/site/assets/layout/*
+!apps/site/assets/layout/layout.css
+!apps/site/assets/layout/layout.js
+!apps/site/assets/moments/
+apps/site/assets/moments/*
+!apps/site/assets/moments/lib.js
+!apps/site/assets/moments/moments.js
+!apps/site/assets/moments/letters-assemble/
+apps/site/assets/moments/letters-assemble/*
+!apps/site/assets/moments/letters-assemble/moment.css
+!apps/site/assets/moments/letters-assemble/moment.js
+!apps/site/assets/motion/
+apps/site/assets/motion/*
+!apps/site/assets/motion/motion.css
+!apps/site/assets/motion/motion.js
+!apps/site/assets/ui/
+apps/site/assets/ui/*
+!apps/site/assets/ui/base.css
+!apps/site/assets/ui/cards.css
+!apps/site/assets/ui/ui.js
