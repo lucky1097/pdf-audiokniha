@@ -9,30 +9,39 @@ prehrávaní do telefónu a potom hlas funguje aj bez internetu. PDF číta pdf.
 Postaví sa v cloude cez EAS a nainštaluje ako „development build“. Potom sa zmeny v kóde dostanú do telefónu cez Wi‑Fi
 z počítača, bez ďalšieho buildu.
 
+V PowerShelli na Windows sú skripty `npm.ps1`, `npx.ps1` a `eas.ps1` zablokované (execution policy), preto príkazy
+nižšie volajú `npm.cmd` a `eas.cmd`. Okrem inštalácie sa všetky spúšťajú v priečinku `apps/mobile`.
+
 1. Nainštaluj EAS CLI a prihlás sa (účet na expo.dev je zadarmo):
    ```bash
-   npm install -g eas-cli
+   npm.cmd install -g eas-cli
    ```
    ```bash
-   eas login
+   cd C:\Users\Lucky\Documents\pdf-audiokniha\apps\mobile
    ```
-2. V priečinku `apps/mobile` prepoj projekt s Expo (doplní `projectId` do `app.json`):
    ```bash
-   eas init
+   eas.cmd login
    ```
-3. Zaregistruj iPhone. Príkaz ukáže QR kód; otvor ho v iPhone a nainštaluj profil:
+2. Prepoj projekt s Expo. Doplní `extra.eas.projectId` do `app.json`; túto zmenu treba commitnúť:
    ```bash
-   eas device:create
+   eas.cmd init
    ```
-4. Spusti build. EAS sa spýta na prihlásenie do Apple Developer účtu a sám vytvorí certifikáty:
+3. Zaregistruj iPhone. Príkaz ukáže QR kód; otvor ho v iPhone a nainštaluj profil
+   (Nastavenia → Stiahnutý profil):
    ```bash
-   eas build -p ios --profile development
+   eas.cmd device:create
    ```
-   Trvá to asi 15–30 minút. Na konci dostaneš odkaz a QR kód na inštaláciu.
+4. Spusti build. EAS sa spýta na prihlásenie do Apple Developer účtu, sám vytvorí certifikáty a profil a na App ID
+   zapne schopnosť **Increased Memory Limit** (appka ju má v `app.json`, aby sa 380 MB model zmestil do pamäte):
+   ```bash
+   eas.cmd build -p ios --profile development
+   ```
+   Trvá to asi 15–30 minút, na bezplatnom pláne aj s čakaním v rade. Na konci dostaneš odkaz a QR kód na inštaláciu.
 5. V iPhone zapni **Nastavenia → Súkromie a bezpečnosť → Režim pre vývojárov** (iPhone sa reštartuje).
-6. Na počítači spusti server (iPhone a počítač musia byť na tej istej Wi‑Fi):
+6. Na počítači spusti server. iPhone a počítač musia byť na tej istej Wi‑Fi; ak sa Windows spýta na firewall pre
+   Node.js, povoľ súkromnú sieť:
    ```bash
-   npm start -w @audiokniha/mobile
+   npm.cmd start
    ```
    V appke v iPhone vyber server z ponuky alebo naskenuj QR kód z terminálu.
 
