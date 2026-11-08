@@ -1,0 +1,205 @@
+<title>Skúška hlasov</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one reading column, a speed table, then listening blocks per passage; a lab report about book voices. */
+:root {
+  --paper: #f4f5f2; --ink: #1d2327; --muted: #5d676d; --rule: #d5dad6; --card: #ffffff;
+  --accent: #2f5d62; --ok: #2e7d4f; --warn: #a86b12; --bad: #b3372e;
+  --display: "Literata", Georgia, "Times New Roman", serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #14181a; --ink: #e6ebe8; --muted: #9aa5a8; --rule: #2c3437; --card: #1b2023;
+  --accent: #7fb5b8; --ok: #6cc28f; --warn: #e0a64a; --bad: #ec7d72; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #14181a; --ink: #e6ebe8; --muted: #9aa5a8; --rule: #2c3437; --card: #1b2023;
+  --accent: #7fb5b8; --ok: #6cc28f; --warn: #e0a64a; --bad: #ec7d72; color-scheme: dark; }
+body { background: var(--paper); color: var(--ink); font: 16px/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 760px; margin: 0 auto; padding-block: 40px 64px; display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.2; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2rem, 6vw, 2.8rem); }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.15rem; }
+p { margin: 0; max-width: 65ch; }
+header { display: grid; gap: 12px; }
+.lede { font-size: 1.1rem; color: var(--muted); }
+section { display: grid; gap: 16px; }
+.verdict { background: var(--card); border: 1px solid var(--rule); border-left: 4px solid var(--accent); padding: 18px 20px; display: grid; gap: 10px; }
+.verdict ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+td.num { text-align: right; white-space: nowrap; }
+tr.pick td { font-weight: 700; }
+tr.pick td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.note { font-size: .9rem; color: var(--muted); }
+blockquote { margin: 0; padding: 12px 16px; border-left: 2px solid var(--rule); color: var(--muted); font-family: var(--display); font-size: .98rem; }
+.takes, .gallery { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.gallery { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.take, .gallery li { background: var(--card); border: 1px solid var(--rule); padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
+.take-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.voice { color: var(--muted); font-size: .92rem; }
+.chip { margin-left: auto; font-size: .8rem; font-weight: 700; padding: 2px 8px; border: 1px solid currentColor; color: var(--muted); }
+.chip.ok { color: var(--ok); } .chip.warn { color: var(--warn); } .chip.bad { color: var(--bad); }
+audio { width: 100%; height: 40px; }
+details summary { cursor: pointer; color: var(--accent); font-size: .92rem; }
+details summary:focus-visible, audio:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.transcript { font-size: .95rem; padding-top: 6px; }
+.findings { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
+</style>
+<main>
+<header>
+  <h1>Skúška hlasov</h1>
+  <p class="lede">Fáza 0 appky PDF → audiokniha. Rovnaké texty som nechal prečítať modely, ktoré bežia priamo v zariadení, bez cloudu. Rýchlosť je meraná na tvojom PC (i3-10105F, GTX 1050 Ti). Presnosť meria Whisper: prepíše nahrávku a porovná ju s pôvodným textom.</p>
+</header>
+
+<section class="verdict" aria-labelledby="v">
+  <h2 id="v">Čo je overené a čo rozhodne tvoj posluch</h2>
+  <ul>
+    <li><strong>Overené:</strong> Supertonic 3 číta slovenčinu aj angličtinu jedným modelom, bez GPL kódu a bez cloudu. V prehliadači s WebGPU vyrobí hodinu knihy asi za 4,5 minúty, na procesore tohto PC za ~20 minút.</li>
+    <li><strong>Zrozumiteľnosť:</strong> v slovenskej próze Whisper počul podľa zvuku 8–10 % slov inak (Piper 12 %). Pri anglickej próze to bolo 0 %. Časť z toho sú chyby Whispera, nie hlasu.</li>
+    <li><strong>Na čo sa pri počúvaní sústrediť:</strong> mužský hlas 6 občas zopakuje slovo alebo vetu („hmla-hmla“, dvakrát „Jana si povzdychla“) a niekde skráti dlhú samohlásku („prebudza“). V dlhej knihe by to rušilo.</li>
+    <li><strong>Čísla a symboly</strong> (°C, €, t. j., napr.) nečíta správne žiadny model. Treba ich pred čítaním prepísať na slová, čo je prvá úloha fázy 1.</li>
+    <li><strong>Kokoro</strong> v prozaickom texte znie dobre, ale bez GPL fonemizéra vynecháva čísla aj mená (aj „Clara“) a na procesore je pomalší ako reálny čas.</li>
+  </ul>
+  <p class="note">Môj návrh je Supertonic 3 pre oba jazyky. Či znie dosť dobre na celé knihy, rozhodni podľa ukážok nižšie.</p>
+</section>
+
+<section aria-labelledby="speed">
+  <h2 id="speed">Rýchlosť</h2>
+  <p>RTF je čas výpočtu delený dĺžkou zvuku. Menej je lepšie: 0,1 znamená 10× rýchlejšie, ako sa to počúva.</p>
+  <p class="note">Merané len na tomto PC. iPhone, notebooky s integrovanou grafikou a Safari na mobile zatiaľ netestované, rovnako ani dlhé generovanie, pri ktorom sa môže prejaviť prehrievanie.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Model</th><th>Kde beží</th><th>RTF</th><th>Hodina knihy</th></tr></thead>
+    <tbody><tr class="pick"><td>Supertonic 3</td><td>Prehliadač, WebGPU (GTX 1050 Ti), fp32, 380 MB</td><td class="num">0.07</td><td class="num">4 min</td></tr><tr class=""><td>Supertonic 3</td><td>Prehliadač, WebGPU (GTX 1050 Ti), int8, 145 MB</td><td class="num">0.21</td><td class="num">13 min</td></tr><tr class="pick"><td>Supertonic 3</td><td>Procesor tohto PC (i3), natívne, int8</td><td class="num">0.29</td><td class="num">17 min</td></tr><tr class=""><td>Supertonic 3</td><td>Prehliadač bez GPU (WASM, 8 vlákien)</td><td class="num">1.00</td><td class="num">60 min</td></tr><tr class=""><td>Piper sk</td><td>Procesor tohto PC, natívne</td><td class="num">0.06</td><td class="num">4 min</td></tr><tr class=""><td>Kokoro v1.0</td><td>Procesor tohto PC, natívne, int8</td><td class="num">1.70</td><td class="num">1.7 h</td></tr></tbody>
+  </table></div>
+</section>
+
+<section aria-labelledby="listen">
+  <h2 id="listen">Ukážky</h2>
+  <p class="note">Supertonic: ženský hlas 3 a mužský hlas 6 (pohlavie som odhadol z výšky hlasu). Kokoro: af_heart, am_michael a bf_emma. Pri slovenčine počítam rozdiely podľa zvuku, takže „vysela“ namiesto „visela“ sa nepočíta ako chyba.</p>
+</section>
+<section class="text-block" id="sk_proza">
+  <h3>Slovenská próza</h3>
+  <blockquote lang="sk">Keď Jana vystúpila z vlaku, mesto ešte spalo. Nad strechami visela riedka hmla a z pekárne na rohu voňal čerstvý chlieb. Zastala pri starej lipe, kde sa kedysi stretávala s otcom, a chvíľu len počúvala, ako sa ulica pomaly prebúdza. Potom si upravila kabát, zhlboka sa nadýchla a vykročila smerom k námestiu.</blockquote>
+  <ul class="takes"><li class="take">
+  <div class="take-head"><strong>Supertonic 3</strong><span class="voice">hlas 3 · ženský</span><span class="chip warn">10 % slov inak</span></div>
+  <audio controls preload="none" src="sk_proza_supertonic_sid3.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">Keď Jana vystúpila z vlaku, mesto ešte spalo. Nad strechami vysela rietka hnlá, z pekárne na rohu vonial čerstvý chlieb. Zastala pri starej lipe, kde sa kedysi stretávala s otcom a chvíľu len počúvala, ako sa ulica pomaly prebudza. Potom si upravila kabát, zlboka sa nadýchla a vykročila smerom k námestiu.</p><p class="note">Podľa zvuku 10 % slov inak · podľa pravopisu 14 % · znaky 3 %</p></details>
+</li><li class="take">
+  <div class="take-head"><strong>Supertonic 3</strong><span class="voice">hlas 6 · mužský</span><span class="chip warn">10 % slov inak</span></div>
+  <audio controls preload="none" src="sk_proza_supertonic_sid6.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">Keď Jana vystúpila z vlaku, mesto ešte spalo. Nad strechami vysela riedka hmla-hmla a z pekárne na rohu vonial čerstvý chlieb. Zastala pri starej lipe, kde sa kedysi stretávala s otcom a chvíľu len počúvala, ako sa ulica pomaly prebudza. Potom si upravila kabát, zlboka sa nadýchla, vykročila smerom k námestiu.</p><p class="note">Podľa zvuku 10 % slov inak · podľa pravopisu 12 % · znaky 4 %</p></details>
+</li><li class="take">
+  <div class="take-head"><strong>Supertonic 3 · 16 krokov</strong><span class="voice">hlas 3 · ženský</span><span class="chip warn">8 % slov inak</span></div>
+  <audio controls preload="none" src="sk_proza_supertonic_sid3_16krokov.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">Keď Jana vystúpila z vlaku, mesto ešte spalo, nad strechami vysela rietka hmla a z pekárne na rohu vonial čerstvý chlieb. Zastala pri starej lipe, kde sa kedysi stretávala s otcom a chvíľu len počúvala, ako sa ulica pomaly prebudzá. Potom si upravila kabát, zlboka sa nadýchla a vykročila smerom námestiu.</p><p class="note">Podľa zvuku 8 % slov inak · podľa pravopisu 12 % · znaky 2 %</p></details>
+</li><li class="take">
+  <div class="take-head"><strong>Piper sk · lili</strong><span class="voice">lili</span><span class="chip warn">12 % slov inak</span></div>
+  <audio controls preload="none" src="sk_proza_piper_lili.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">Keď jena vystúpila z vlaku, mesto ešte spalo. Nad strechami vysela riedká hmla a z pekárne na rohu vonal čerstvý chlieb. Zastala pri starej libe, kde sa kedysi stretávala s otcom a chvíľu len počúvala, ako sa ulica pomaly prebúdla. Potom si upravila kabát, sloboka sa nadýchla a vykročila smerom k námestim.</p><p class="note">Podľa zvuku 12 % slov inak · podľa pravopisu 15 % · znaky 2 %</p></details>
+</li></ul>
+</section><section class="text-block" id="sk_zradny">
+  <h3>Slovenský text s číslami a skratkami</h3>
+  <blockquote lang="sk">Kapitola 3. Ráno 15. marca 2024 bolo v Žiline asi 3 °C. Z reproduktora sa ozvalo: „Rýchlik R 612 do Bratislavy mešká približne 20 minút.“ Jana si povzdychla. „Tak to sme zase tu,“ povedala potichu, napr. sama sebe, a vybrala z tašky knihu o dejinách Uhorska v 19. storočí. Stála 12,50 €, t. j. o 30 % viac, než čakala.</blockquote>
+  <ul class="takes"><li class="take">
+  <div class="take-head"><strong>Supertonic 3</strong><span class="voice">hlas 3 · ženský</span><span class="chip bad">24 % slov inak</span></div>
+  <audio controls preload="none" src="sk_zradny_supertonic_sid3.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">Kapitola 3. Ráno 15. marca 2024 bolo v Žiline asi 3 cej a z reproduktora sa ozvalo rýchlík 6.12 do Bratislavy Mečslavy mešká približne 20 minút. Jana si povzdychla, ak takto sme zase tu, povedala potichu na pr. Sama sebe vybrala z tašky knihu o dejinách Uhorska v 19. storočí. Stála 20.50, tyžej. O 30% viac než čakala.</p><p class="note">Podľa zvuku 24 % slov inak · podľa pravopisu 24 % · znaky 10 %</p></details>
+</li><li class="take">
+  <div class="take-head"><strong>Supertonic 3</strong><span class="voice">hlas 6 · mužský</span><span class="chip bad">27 % slov inak</span></div>
+  <audio controls preload="none" src="sk_zradny_supertonic_sid6.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">Kapitola 3. Ráno 5. Marca 224 bolo v Žiline asi 3 oce. Z reproduktora sa ozvalo. Rýchlyk R612 do Bratislavy mešká približne 20 minút. Jana si povzdichla. Jana si povzdichla. Takto sme zase tu? Povedala potichu. Napr. Sama sebe. A vybrala z tašky knihu o dejinách uhynách Uhorska v 19. storočí. Stála 250. Ty jej? O 30% viac než čakala. U Dja.</p><p class="note">Podľa zvuku 27 % slov inak · podľa pravopisu 30 % · znaky 15 %</p></details>
+</li><li class="take">
+  <div class="take-head"><strong>Piper sk · lili</strong><span class="voice">lili</span><span class="chip bad">27 % slov inak</span></div>
+  <audio controls preload="none" src="sk_zradny_piper_lili.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">Kapitola 3. Ráno 15. máca 2024 bolo v Žiline asi 3 stupňovce. Z reproduktora sa ozvalo. Výchlik R612 do Bratislavy mešká približne 20 minút. Jana si povzdychol. Teraz sme zase tu, povedala potichu, naprsa na sebe a vybrala z tašky knihu o deňnách Úhorska v 19. storočí. Stála 12,50 eur, ktorý je o 30% viac, než čákala.</p><p class="note">Podľa zvuku 27 % slov inak · podľa pravopisu 27 % · znaky 12 %</p></details>
+</li></ul>
+</section><section class="text-block" id="en_prose">
+  <h3>Anglická próza</h3>
+  <blockquote lang="en">The rain had stopped by the time Clara reached the old lighthouse. She paused at the door, listening to the waves breaking somewhere below, and for a moment she wondered whether coming back had been a mistake. Then she pushed the door open and stepped inside, into the smell of salt, dust and old paper.</blockquote>
+  <ul class="takes"><li class="take">
+  <div class="take-head"><strong>Supertonic 3</strong><span class="voice">hlas 3 · ženský</span><span class="chip ok">0 % slov inak</span></div>
+  <audio controls preload="none" src="en_prose_supertonic_sid3.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">the rain had stopped by the time clara reached the old lighthouse she paused at the door listening to the waves breaking somewhere below and for a moment she wondered whether coming back had been a mistake then she pushed the door open and stepped inside into the smell of salt dust and old paper</p><p class="note">0 % slov inak · znaky 0 %</p></details>
+</li><li class="take">
+  <div class="take-head"><strong>Supertonic 3</strong><span class="voice">hlas 6 · mužský</span><span class="chip ok">0 % slov inak</span></div>
+  <audio controls preload="none" src="en_prose_supertonic_sid6.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">The rain had stopped by the time Clara reached the old lighthouse. She paused at the door, listening to the waves breaking somewhere below, and for a moment she wondered whether coming back had been a mistake. Then she pushed the door open and stepped inside, into the smell of salt, dust and old paper.</p><p class="note">0 % slov inak · znaky 0 %</p></details>
+</li><li class="take">
+  <div class="take-head"><strong>Kokoro v1.0</strong><span class="voice">af_heart</span><span class="chip ok">2 % slov inak</span></div>
+  <audio controls preload="none" src="en_prose_kokoro_af_heart.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">the rain had stopped by the time reached the old lighthouse she paused at the door listening to the waves breaking somewhere below and for a moment she wondered whether coming back had been a mistake then she pushed the door open and stepped inside into the smell of salt dust and old paper</p><p class="note">2 % slov inak · znaky 2 %</p></details>
+</li><li class="take">
+  <div class="take-head"><strong>Kokoro v1.0</strong><span class="voice">am_michael</span><span class="chip ok">4 % slov inak</span></div>
+  <audio controls preload="none" src="en_prose_kokoro_am_michael.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">the rain had stopped by the time reached the old lighthouse she paused at the door listening to the waves breaking somewhere below and for a moment she wondered whether coming back had been a mistake then she pushed the door open and stepped inside into the smell of salt dust in old paper</p><p class="note">4 % slov inak · znaky 3 %</p></details>
+</li><li class="take">
+  <div class="take-head"><strong>Kokoro v1.0</strong><span class="voice">bf_emma</span><span class="chip ok">0 % slov inak</span></div>
+  <audio controls preload="none" src="en_prose_kokoro_bf_emma.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">the rain had stopped by the time clara reached the old lighthouse she paused at the door listening to the waves breaking somewhere below and for a moment she wondered whether coming back had been a mistake then she pushed the door open and stepped inside into the smell of salt dust and old paper</p><p class="note">0 % slov inak · znaky 0 %</p></details>
+</li></ul>
+</section><section class="text-block" id="en_tricky">
+  <h3>Anglický text s číslami a skratkami</h3>
+  <blockquote lang="en">Chapter 12. On March 3rd, 2019, Dr. Evans paid $1,250.75 for a 1.5 kg brass compass, roughly 40% more than he had planned. &quot;It&#x27;s worth every penny,&quot; he said, glancing at the clock: 7:45 p.m. His assistant, Mrs. O&#x27;Neill, wasn&#x27;t so sure.</blockquote>
+  <ul class="takes"><li class="take">
+  <div class="take-head"><strong>Supertonic 3</strong><span class="voice">hlas 3 · ženský</span><span class="chip warn">6 % slov inak</span></div>
+  <audio controls preload="none" src="en_tricky_supertonic_sid3.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">Chapter 12, on March 3rd, 2019, Dr. Evans paid $150, $75 for a 1.5 kg brass compass, roughly 40% more than he had planned. It&#x27;s worth every penny, he said, glancing at the clock. 7.45 p.n. His assistant, Mrs. O&#x27;Neill, wasn&#x27;t so sure.</p><p class="note">6 % slov inak · znaky 1 %</p></details>
+</li><li class="take">
+  <div class="take-head"><strong>Supertonic 3</strong><span class="voice">hlas 6 · mužský</span><span class="chip bad">32 % slov inak</span></div>
+  <audio controls preload="none" src="en_tricky_supertonic_sid6.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">Chapter 12. On March 3rd, 2019, Dr. Evans paid two to fifty followers, seventy-five for a one-one-five-five-bray brass compass, roughly forty percent more than he had planned. It&#x27;s worth every penny, he said, glancing at the clock. Seven-forty-five p.m., his assistant, Mrs. O&#x27;Neill, wasn&#x27;t so sure.</p><p class="note">32 % slov inak · znaky 37 %</p></details>
+</li><li class="take">
+  <div class="take-head"><strong>Kokoro v1.0</strong><span class="voice">af_heart</span><span class="chip bad">38 % slov inak</span></div>
+  <audio controls preload="none" src="en_tricky_kokoro_af_heart.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">chapter on march doctor paid for a brass compass roughly more than he had planned worth every penny he said glancing at the clock p m his assistant missus wasn&#x27;t so sure</p><p class="note">38 % slov inak · znaky 26 %</p></details>
+</li><li class="take">
+  <div class="take-head"><strong>Kokoro v1.0</strong><span class="voice">am_michael</span><span class="chip bad">38 % slov inak</span></div>
+  <audio controls preload="none" src="en_tricky_kokoro_am_michael.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">chapter on march doctor paid for a brass compass roughly more than he had planned worth every penny he said glancing at the clock p m his assistant misses wasn&#x27;t so sure</p><p class="note">38 % slov inak · znaky 25 %</p></details>
+</li><li class="take">
+  <div class="take-head"><strong>Kokoro v1.0 bez espeak</strong><span class="voice">af_heart</span><span class="chip bad">38 % slov inak</span></div>
+  <audio controls preload="none" src="en_tricky_kokoro_af_heart_bez_espeak.mp3"></audio>
+  <details><summary>Čo počul Whisper</summary><p class="transcript">chapter on march doctor paid for a brass compass roughly more than he had planned worth every penny he said glancing at the clock p m his assistant missus wasn&#x27;t so sure</p><p class="note">38 % slov inak · znaky 26 %</p></details>
+</li></ul>
+</section>
+
+<section aria-labelledby="fix">
+  <h2 id="fix">Pred a po úprave</h2>
+  <p>Rovnaký zradný text, mužský hlas 6. „Pred“ je text tak, ako je v knihe, generovaný naraz. „Po“ má čísla, symboly a skratky prepísané na slová a každú vetu generovanú zvlášť.</p>
+  <ul class="takes">
+    <li class="take"><div class="take-head"><strong>Slovensky, pred úpravou</strong><span class="voice">opakuje vetu, nečíta °C ani €</span></div><audio controls preload="none" src="sk_zradny_supertonic_sid6.mp3"></audio></li>
+    <li class="take"><div class="take-head"><strong>Slovensky, po úprave</strong><span class="voice">bez opakovaní, čísla čítané</span></div><audio controls preload="none" src="fixes/sk_norm_v6_t1.mp3"></audio></li>
+    <li class="take"><div class="take-head"><strong>Slovensky, po úprave, ženský hlas 3</strong></div><audio controls preload="none" src="fixes/sk_norm_v3_t1.mp3"></audio></li>
+    <li class="take"><div class="take-head"><strong>Anglicky, pred úpravou</strong><span class="voice">„two to fifty followers“</span></div><audio controls preload="none" src="en_tricky_supertonic_sid6.mp3"></audio></li>
+    <li class="take"><div class="take-head"><strong>Anglicky, po úprave</strong><span class="voice">Whisper počul presne $1,250.75</span></div><audio controls preload="none" src="fixes/en_norm_v6_t1.mp3"></audio></li>
+  </ul>
+</section>
+
+<section aria-labelledby="web">
+  <h2 id="web">Supertonic v prehliadači</h2>
+  <p>Toto vygenerovala testovacia stránka priamo v Chromiu cez WebGPU. Je to ten istý model v inom runtime, s hlasovým štýlom F1 a kratším textom, preto čísla nie sú priamo porovnateľné s ukážkami vyššie.</p>
+  <ul class="takes"><li class="take"><div class="take-head"><strong>Anglicky · WebGPU v prehliadači</strong><span class="voice">štýl F1</span><span class="chip ok">0 % slov inak</span></div><audio controls preload="none" src="web/web_webgpu_fp32_en.wav"></audio><details><summary>Čo počul Whisper</summary><p class="transcript">The rain had stopped by the time Clara reached the old lighthouse. She paused at the door, listening to the waves breaking somewhere below, and for a moment she wondered whether coming back had been a mistake.</p><p class="note">0 % slov inak · znaky 0 %</p></details></li><li class="take"><div class="take-head"><strong>Slovensky · WebGPU v prehliadači</strong><span class="voice">štýl F1</span><span class="chip ok">2 % slov inak</span></div><audio controls preload="none" src="web/web_webgpu_fp32_sk.wav"></audio><details><summary>Čo počul Whisper</summary><p class="transcript">Keď Jana vystúpila z vlaku, mesto ešte spalo. Nad strechami vysela rietka, hmla a z pekárne na rohu vonal čerstvý chlieb. Zastala pri starej lipe, kde sa kedysi stretávala s otcom a chvíľu len počúvala, ako sa ulica pomaly prebúdza.</p><p class="note">Podľa zvuku 2 % slov inak · podľa pravopisu 8 % · znaky 0 %</p></details></li></ul>
+</section>
+
+<section aria-labelledby="gal">
+  <h2 id="gal">Všetkých 10 hlasov Supertonicu</h2>
+  <blockquote lang="sk">Dobrý deň, toto je ukážka hlasu pre slovenskú audioknihu.</blockquote>
+  <ul class="gallery"><li><div class="take-head"><strong>Hlas 0</strong><span class="voice">ženský · 185 Hz</span></div><audio controls preload="none" src="galeria_supertonic_sid0.mp3"></audio></li><li><div class="take-head"><strong>Hlas 1</strong><span class="voice">ženský · 189 Hz</span></div><audio controls preload="none" src="galeria_supertonic_sid1.mp3"></audio></li><li><div class="take-head"><strong>Hlas 2</strong><span class="voice">ženský · 175 Hz</span></div><audio controls preload="none" src="galeria_supertonic_sid2.mp3"></audio></li><li><div class="take-head"><strong>Hlas 3</strong><span class="voice">ženský · 203 Hz</span></div><audio controls preload="none" src="galeria_supertonic_sid3.mp3"></audio></li><li><div class="take-head"><strong>Hlas 4</strong><span class="voice">ženský · 161 Hz</span></div><audio controls preload="none" src="galeria_supertonic_sid4.mp3"></audio></li><li><div class="take-head"><strong>Hlas 5</strong><span class="voice">mužský · 125 Hz</span></div><audio controls preload="none" src="galeria_supertonic_sid5.mp3"></audio></li><li><div class="take-head"><strong>Hlas 6</strong><span class="voice">mužský · 86 Hz</span></div><audio controls preload="none" src="galeria_supertonic_sid6.mp3"></audio></li><li><div class="take-head"><strong>Hlas 7</strong><span class="voice">mužský · 99 Hz</span></div><audio controls preload="none" src="galeria_supertonic_sid7.mp3"></audio></li><li><div class="take-head"><strong>Hlas 8</strong><span class="voice">mužský · 113 Hz</span></div><audio controls preload="none" src="galeria_supertonic_sid8.mp3"></audio></li><li><div class="take-head"><strong>Hlas 9</strong><span class="voice">mužský · 91 Hz</span></div><audio controls preload="none" src="galeria_supertonic_sid9.mp3"></audio></li></ul>
+</section>
+
+<section aria-labelledby="find">
+  <h2 id="find">Čo z toho plynie pre ďalšie fázy</h2>
+  <ul class="findings">
+    <li><strong>Licencia Supertonicu</strong> (BigScience OpenRAIL-M) povoľuje šírenie v appke aj na webe. Používateľ však nesmie zverejniť generovaný obsah bez označenia. Appka preto pridá upozornenie a export zapíše do metadát „hlas generovaný AI“.</li>
+    <li><strong>sherpa-onnx 2.0</strong> už neobsahuje espeak-ng. Supertonic fonemizér nepotrebuje, takže iOS build ostane bez GPL.</li>
+    <li><strong>Web:</strong> fp32 cez WebGPU je najrýchlejší, ale stiahne sa 380 MB. Overíme verziu fp16 (asi 190 MB). Bez WebGPU beží WASM zhruba v reálnom čase, čo stačí na počúvanie počas generovania.</li>
+    <li><strong>iOS:</strong> generovať sa dá, kým hrá zvuk. <code>BGContinuedProcessingTask</code> (iOS 26) existuje, ale podľa vývojárov sa pri zamknutom telefóne zastavuje. Celá kniha sa teda generuje pri otvorenej appke alebo počas počúvania.</li>
+  </ul>
+</section>
+</main>

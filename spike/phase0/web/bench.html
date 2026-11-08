@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supertonic benchmark</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 24px; max-width: 900px; }
+  pre { background: #f3f3f3; padding: 12px; white-space: pre-wrap; }
+  label { margin-right: 16px; }
+</style>
+</head>
+<body>
+<h1>Supertonic 3 v prehliadači</h1>
+<p>
+  <label>Backend <select id="ep"><option>webgpu</option><option>wasm</option></select></label>
+  <label>Model <select id="set"><option value="fp32">fp32 (HF)</option><option value="int8">int8 (sherpa-onnx)</option></select></label>
+  <label>Kroky <input id="steps" type="number" value="8" min="1" max="32" style="width:4em"></label>
+  <button id="run">Spustiť</button>
+</p>
+<pre id="log">Pripravené.</pre>
+<div id="out"></div>
+<script type="module" src="bench.js"></script>
+</body>
+</html>

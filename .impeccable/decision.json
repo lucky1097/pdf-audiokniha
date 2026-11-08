@@ -1,0 +1,112 @@
+{
+  "title": "Vizuálny svet appky",
+  "question": "Generátor pridelil Cestovný poriadok. Ponechaj ho, vyber inú možnosť alebo hoď znova.",
+  "options": [
+    {
+      "id": "assigned",
+      "kind": "assigned",
+      "label": "Cestovný poriadok",
+      "kicker": "THE ROLL",
+      "lineage": "stredoeurópske tlačené cestovné poriadky a schémy tratí",
+      "thesis": "Kniha je trať: kapitoly sú zastávky, vygenerovaný zvuk je položená koľaj a počúvanie je jazda.",
+      "palette": ["#1C3F94", "#EEF2F8", "#121826", "#D7262E", "#E3A008"],
+      "materials": ["čisté tlačové farby bez textúr", "tabuľkové číslice", "schéma trate"],
+      "viewport": "Vľavo zvislá schéma trate s kapitolami ako zastávkami a časmi, v strede editor viet, dole prehrávač s vlakom na trati.",
+      "risk": "Ak je schéma trate len dekorácia, ostane z toho modrá appka s bodkami.",
+      "raised": [
+        {"from": "challenger-console", "raise": "Mazanie knihy stojí osamote, ďaleko od tlačidiel, ktoré sa stláčajú často."},
+        {"from": "challenger-flap", "raise": "Stĺpce tabuľky kapitol sa nikdy nehýbu, stav (generuje sa, chyba) mení len vzhľad riadku."},
+        {"from": "challenger-map", "raise": "Farby sú ploché a odvážne, modrá vlastní celý rám appky, nie len akcent."},
+        {"from": "challenger-saville", "raise": "Číslo kapitoly je hlavný index ako číslo vlaku, všade v rovnakom poradí."}
+      ],
+      "html": ".impeccable/mocks/decision/assigned.html",
+      "comp": ".impeccable/mocks/decision/assigned.webp"
+    },
+    {
+      "id": "model-pick",
+      "kind": "pick",
+      "label": "Korektúrny hárok",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "sadzobné korektúry a korektorské značky",
+      "thesis": "Editor je korektúra pred tlačou: čo hlas prečíta inak, je vyznačené na okraji ako oprava.",
+      "palette": ["#FBFAF7", "#1E1B18", "#C8102E", "#2B4C7E"],
+      "materials": ["korektorské značky na okraji", "stĺpec sadzby"],
+      "viewport": "Široký stĺpec textu s opravami na okraji, kapitoly ako záložky hore, prehrávač ako pruh dole.",
+      "risk": "Je to aj smer, kam väčšina takých návrhov skončí: krémový papier, pätkové písmo, červená ceruzka.",
+      "html": ".impeccable/mocks/decision/model-pick.html",
+      "comp": ".impeccable/mocks/decision/model-pick.webp"
+    },
+    {
+      "id": "challenger-lexicon",
+      "kind": "challenger",
+      "catalogId": "rw-lexicon-shoulder-and-plate",
+      "label": "Stránka lexikónu",
+      "verdict": "competitive",
+      "lineage": "lexikóny 19. storočia",
+      "thesis": "Kniha ako lexikón: v hlavičke prvá a posledná veta na obrazovke, na okraji palcový register kapitol.",
+      "palette": ["#F7F3EA", "#141414", "#C2410C", "#1D4ED8"],
+      "materials": ["pevná miera riadku", "okrajový register", "preškrtnuté a nahradené"],
+      "viewport": "Text v pevnom stĺpci, na pravom okraji register kapitol, prepísané čísla ako preškrtnuté a nahradené slová.",
+      "case": "Výborne vysvetľuje opravy textu, ale prehrávanie a priebeh generovania ostávajú v úzadí.",
+      "risk": "Krémový papier je presne ten predvolený vzhľad, ktorému sa chceme vyhnúť.",
+      "html": ".impeccable/mocks/decision/challenger-lexicon.html",
+      "comp": ".impeccable/mocks/decision/challenger-lexicon.webp",
+      "hero": "https://impeccable.style/worlds/cards/rw-lexicon-shoulder-and-plate-hero.webp"
+    },
+    {
+      "id": "challenger-console", "kind": "challenger", "catalogId": "digital-design-canon-dark-first-developer-console",
+      "label": "Vývojárska konzola", "verdict": "declined", "lineage": "tmavé vývojárske nástroje",
+      "thesis": "Grafitová plocha s panelmi oddelenými tenkými čiarami.", "palette": ["#1B1D21", "#E6E8EB", "#5EC4B6"],
+      "materials": ["grafit", "jednopixelové švy"], "viewport": "Panely kapitol, textu a prehrávača vedľa seba.",
+      "case": "Poslucháči, študenti ani ľudia s dyslexiou sa v nástroji pre programátorov nenájdu.", "kept": "Mazanie stojí osamote.",
+      "risk": "Pôsobí ako nástroj pre programátorov.", "hero": "https://impeccable.style/worlds/cards/digital-design-canon-dark-first-developer-console-hero.webp"
+    },
+    {
+      "id": "challenger-wall", "kind": "challenger", "catalogId": "pop-culture-shelf-streaming-title-card-wall",
+      "label": "Stena titulov", "verdict": "declined", "lineage": "streamingové katalógy",
+      "thesis": "Knihy ako plagáty v radoch.", "palette": ["#0E0F12", "#F5F5F5", "#E50914"],
+      "materials": ["obálky", "zväčšenie pri výbere"], "viewport": "Rady obálok kníh.",
+      "case": "Knihy z PDF nemajú obálky a editor sa do steny titulov nezmestí.", "kept": "Podrobnosti sa ukážu až pri výbere.",
+      "risk": "Bez obálok je to prázdna stena.", "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-streaming-title-card-wall-hero.webp"
+    },
+    {
+      "id": "challenger-map", "kind": "challenger", "catalogId": "aww2-zoo-gardens-guide-map",
+      "label": "Mapa zoo", "verdict": "declined", "lineage": "skladacie mapy záhrad",
+      "thesis": "Kapitoly ako farebné ostrovy.", "palette": ["#8ED462", "#F5F1E4", "#2C2E2A", "#FF705D"],
+      "materials": ["ploché farby", "pobrežia"], "viewport": "Kniha ako mapa ostrovov.",
+      "case": "Hravá, ale pri čítaní a opravách textu prekáža.", "kept": "Ploché, odvážne farby.",
+      "risk": "Detinské pre študijné texty.", "hero": "https://impeccable.style/worlds/cards/aww2-zoo-gardens-guide-map-hero.webp"
+    },
+    {
+      "id": "challenger-saville", "kind": "challenger", "catalogId": "brand-identity-canon-saville-catalog-sleeve",
+      "label": "Katalóg nahrávok", "verdict": "declined", "lineage": "obaly platní Factory Records",
+      "thesis": "Všetko má katalógové číslo, popisy sú kódované farbami.", "palette": ["#0A0A0A", "#FFFFFF", "#E8A33D"],
+      "materials": ["matná čierna", "biele linky"], "viewport": "Kniha ako obal s pulzom.",
+      "case": "Kódované popisky sú pre ľudí s ťažkosťami pri čítaní prekážka.", "kept": "Prísne číslovanie v poradí.",
+      "risk": "Nečitateľné bez legendy.", "hero": "https://impeccable.style/worlds/cards/brand-identity-canon-saville-catalog-sleeve-hero.webp"
+    },
+    {
+      "id": "challenger-flap", "kind": "challenger", "catalogId": "signals-instruments-split-flap-concourse",
+      "label": "Odletová tabuľa", "verdict": "declined", "lineage": "staničné preklápacie tabule",
+      "thesis": "Kapitoly ako odchody na preklápacej tabuli.", "palette": ["#111111", "#FFFFFF", "#F2A900"],
+      "materials": ["preklápacie písmená", "oceľ"], "viewport": "Tabuľa kapitol s časmi.",
+      "case": "Blízko pridelenému smeru, ale písmená v bunkách sa zle čítajú ľuďom s dyslexiou.", "kept": "Stĺpce stoja, mení sa len stav riadku.",
+      "risk": "Animácia preklápania je kostým.", "hero": "https://impeccable.style/worlds/cards/signals-instruments-split-flap-concourse-hero.webp"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "code"},
+  "canon": true,
+  "canonCard": {
+    "kind": "canon",
+    "label": "Štandard kategórie",
+    "thesis": "Ako vyzerajú appky na audioknihy, urobené poriadne.",
+    "palette": ["#FFFFFF", "#111827", "#F97316"],
+    "materials": ["čistá mriežka", "veľký prehrávač"],
+    "viewport": "Knižnica, zoznam kapitol a veľký prehrávač ako v bežných appkách na audioknihy.",
+    "risk": "Na nerozoznanie od konkurencie, a editor viet do toho sedí ťažko.",
+    "html": ".impeccable/mocks/decision/canon.html",
+    "comp": ".impeccable/mocks/decision/canon.webp"
+  },
+  "steer": true
+}

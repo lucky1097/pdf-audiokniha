@@ -1,0 +1,5 @@
+# Cloudflare Pages / Netlify: the app needs a cross-origin isolated page for multi-threaded WASM.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Resource-Policy: same-origin

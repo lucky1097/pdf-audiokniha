@@ -1,0 +1,11 @@
+{
+  "name": "@audiokniha/tts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Supertonic 3 inference over any onnxruntime build (node, web). No platform APIs.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "license": "MIT"
+}

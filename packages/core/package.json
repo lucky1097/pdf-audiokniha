@@ -1,0 +1,11 @@
+{
+  "name": "@audiokniha/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Platform-free text pipeline: normalization, segmentation, project model. No Node or DOM APIs.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="sk"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#1C3F94;--ground:#EEF2F8;--ink:#121826;--red:#D7262E;--amber:#E3A008;--line:#C9D3E6;--muted:#5A6478}
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:var(--ground);color:var(--ink);font:17px/1.5 "Atkinson Hyperlegible",sans-serif;display:grid;grid-template-rows:64px 1fr 88px}
+.cond{font-family:"Barlow Semi Condensed",sans-serif}
+header{background:var(--blue);color:#fff;display:flex;align-items:center;gap:28px;padding:0 28px}
+header .brand{font:700 24px "Barlow Semi Condensed";letter-spacing:.01em}
+header .book{font:600 20px "Barlow Semi Condensed";opacity:.9}
+header .meta{margin-left:auto;font-size:14px;opacity:.85}
+main{display:grid;grid-template-columns:380px 1fr;min-height:0}
+.route{background:#fff;border-right:1px solid var(--line);padding:24px 24px 0 28px;overflow:hidden}
+.route h2{font:700 15px "Barlow Semi Condensed";color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:18px}
+.stop{display:grid;grid-template-columns:44px 1fr 64px;align-items:center;min-height:62px;position:relative}
+.stop .rail{position:absolute;left:21px;top:0;bottom:0;width:6px;background:var(--blue)}
+.stop.todo .rail{background:repeating-linear-gradient(var(--line) 0 8px,transparent 8px 14px)}
+.stop.part .rail{background:linear-gradient(var(--blue) 0 55%,var(--line) 55%)}
+.stop:first-of-type .rail{top:50%}
+.dot{position:relative;width:30px;height:30px;border-radius:50%;background:#fff;border:5px solid var(--blue);display:grid;place-items:center;font:700 13px "Barlow Semi Condensed";margin-left:9px}
+.todo .dot{border-color:var(--line);color:var(--muted)}
+.now .dot{background:var(--red);border-color:var(--red);color:#fff}
+.stop .t{font:600 18px "Barlow Semi Condensed";padding-left:14px}
+.stop .t small{display:block;font:400 13px "Atkinson Hyperlegible";color:var(--muted)}
+.stop .time{font:600 17px "Barlow Semi Condensed";text-align:right;font-variant-numeric:tabular-nums}
+.editor{padding:24px 40px;overflow:hidden}
+.chap{display:flex;align-items:baseline;gap:16px;border-bottom:3px solid var(--ink);padding-bottom:10px}
+.chap .no{font:700 44px "Barlow Semi Condensed";color:var(--blue);line-height:1}
+.chap h1{font:700 34px "Barlow Semi Condensed"}
+.chap .span{margin-left:auto;font:600 18px "Barlow Semi Condensed";color:var(--muted)}
+.bar{display:flex;gap:10px;margin:16px 0 18px}
+.sel{background:#fff;border:1px solid var(--line);border-radius:6px;padding:7px 12px;font-size:15px}
+.sel b{font-weight:700}
+.gen{margin-left:auto;background:var(--amber);color:var(--ink);border-radius:6px;padding:7px 14px;font-weight:700;font-size:15px}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line)}
+td{padding:11px 14px;border-top:1px solid var(--line);vertical-align:top}
+td.tm{width:76px;font:600 17px "Barlow Semi Condensed";color:var(--muted);font-variant-numeric:tabular-nums}
+td.st{width:8px;padding:0;background:var(--blue)}
+tr.gen td.st{background:var(--amber)}tr.todo td.st{background:var(--line)}
+tr.now{background:#FDECEC}tr.now td.tm{color:var(--red)}
+td.ac{width:120px;text-align:right;color:var(--blue);font-weight:700;font-size:14px}
+mark{background:#DCE6FA;color:inherit;border-bottom:2px solid var(--blue);padding:0 2px}
+footer{background:var(--blue);color:#fff;display:grid;grid-template-columns:220px 1fr 220px;align-items:center;padding:0 28px;gap:24px}
+.play{width:52px;height:52px;border-radius:50%;background:#fff;color:var(--blue);display:grid;place-items:center;font-size:22px}
+.ctl{display:flex;gap:14px;align-items:center}
+.mini{position:relative;height:6px;background:rgba(255,255,255,.3);border-radius:3px}
+.mini .laid{position:absolute;inset:0 30% 0 0;background:#fff;border-radius:3px}
+.mini i{position:absolute;top:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);border:3px solid #fff;left:22%}
+.mini b{position:absolute;top:-4px;width:14px;height:14px;border-radius:50%;background:var(--blue);border:3px solid #fff}
+.now-t{font:600 18px "Barlow Semi Condensed"}
+.speed{justify-self:end;font:600 18px "Barlow Semi Condensed"}
+</style></head><body>
+<header><span class="brand">Audiokniha</span><span class="book">Návrat do mesta</span><span class="meta">Hlas beží v tomto zariadení · grafická karta</span></header>
+<main>
+<nav class="route"><h2>Trasa knihy · 2 h 14 min</h2>
+<div class="stop"><span class="rail"></span><span class="dot">1</span><span class="t">Kapitola 1<small>Príchod vlakom</small></span><span class="time">0:00</span></div>
+<div class="stop now part"><span class="rail"></span><span class="dot">2</span><span class="t">Kapitola 2<small>Dom na konci ulice</small></span><span class="time">0:14</span></div>
+<div class="stop part"><span class="rail"></span><span class="dot">3</span><span class="t">Kapitola 3<small>Stará lekáreň</small></span><span class="time">0:31</span></div>
+<div class="stop todo"><span class="rail"></span><span class="dot">4</span><span class="t">Kapitola 4<small>Povodeň</small></span><span class="time">0:52</span></div>
+<div class="stop todo"><span class="rail"></span><span class="dot">5</span><span class="t">Kapitola 5<small>Zošit s menami</small></span><span class="time">1:09</span></div>
+<div class="stop todo"><span class="rail"></span><span class="dot">6</span><span class="t">Kapitola 6<small>Večer pri stanici</small></span><span class="time">1:30</span></div>
+<div class="stop todo"><span class="rail"></span><span class="dot">7</span><span class="t">Kapitola 7<small>Návrat</small></span><span class="time">1:51</span></div>
+</nav>
+<section class="editor">
+<div class="chap"><span class="no">2</span><h1>Dom na konci ulice</h1><span class="span">0:14 – 0:31 · 38 viet</span></div>
+<div class="bar"><span class="sel">Jazyk <b>slovenčina</b></span><span class="sel">Hlas <b>Žena 4</b></span><span class="sel">Kvalita <b>vyššia</b></span><span class="sel">Ako sa to prečíta ✓</span><span class="gen">Generuje sa · zostáva 9 min</span></div>
+<table>
+<tr><td class="st"></td><td class="tm">0:14:02</td><td>Dom stál na konci ulice, obrastený divým viničom.</td><td class="ac">▶ Znova</td></tr>
+<tr class="now"><td class="st"></td><td class="tm">0:14:07</td><td>Okenice boli zatvorené a na bránke visela hrdzavá reťaz z roku <mark>tisíc deväťsto osemdesiat šesť</mark>.</td><td class="ac">▶ Znova</td></tr>
+<tr><td class="st"></td><td class="tm">0:14:15</td><td>Jana sa jej dotkla a pocítila zvláštne teplo, akoby kov ešte pamätal dotyk niekoho iného.</td><td class="ac">▶ Znova</td></tr>
+<tr class="gen"><td class="st"></td><td class="tm">0:14:24</td><td>Na schránke stálo meno a pod ním <mark>číslo dvanásť</mark>, vyryté do mosadze.</td><td class="ac">generuje sa</td></tr>
+<tr class="todo"><td class="st"></td><td class="tm">0:14:31</td><td>Večer sedela v malej kaviarni pri stanici a písala do zošita všetko, čo si zapamätala.</td><td class="ac">▶</td></tr>
+<tr class="todo"><td class="st"></td><td class="tm">0:14:39</td><td>Mená susedov, farbu okeníc, vôňu chleba aj hlas starého pána.</td><td class="ac">▶</td></tr>
+</table>
+</section>
+</main>
+<footer>
+<div class="ctl"><span>⏮</span><span class="play">⏸</span><span>⏭</span></div>
+<div><div class="now-t">Kapitola 2 · veta 2 z 38</div><div class="mini"><span class="laid"></span><b style="left:0"></b><b style="left:12%"></b><i></i><b style="left:37%"></b><b style="left:55%"></b><b style="left:72%"></b><b style="left:88%"></b></div></div>
+<div class="speed">1,25×</div>
+</footer>
+</body></html>

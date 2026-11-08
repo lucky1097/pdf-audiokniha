@@ -1,0 +1,12 @@
+[
+  {
+    "file": "web/web_webgpu_fp32_en.wav",
+    "wer": 0.0,
+    "transcript": "The rain had stopped by the time Clara reached the old lighthouse. She paused at the door, listening to the waves breaking somewhere below, and for a moment she wondered whether coming back had been a mistake."
+  },
+  {
+    "file": "web/web_webgpu_fp32_sk.wav",
+    "wer": 0.075,
+    "transcript": "Keď Jana vystúpila z vlaku, mesto ešte spalo. Nad strechami vysela rietka, hmla a z pekárne na rohu vonal čerstvý chlieb. Zastala pri starej lipe, kde sa kedysi stretávala s otcom a chvíľu len počúvala, ako sa ulica pomaly prebúdza."
+  }
+]

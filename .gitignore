@@ -1,0 +1,11 @@
+﻿spike/phase0/models/
+spike/phase0/.venv/
+__pycache__/
+node_modules/
+
+tools/ffmpeg/
+tools/ffmpeg-dl/
+apps/*/dist/
+spike/**/*.wav
+spike/phase2/out/
+.impeccable/review/

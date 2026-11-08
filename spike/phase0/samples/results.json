@@ -1,0 +1,283 @@
+{
+  "threads": 4,
+  "load_seconds": {
+    "supertonic": 0.84,
+    "piper_sk": 1.31,
+    "kokoro": 2.03,
+    "kokoro_no_espeak": "ok"
+  },
+  "female": "sid3",
+  "male": "sid6",
+  "rows": [
+    {
+      "file": "galeria_supertonic_sid0.mp3",
+      "model": "supertonic3",
+      "voice": "sid0",
+      "text": "galeria",
+      "seconds_audio": 4.6,
+      "seconds_compute": 1.54,
+      "rtf": 0.335,
+      "f0_hz": 185
+    },
+    {
+      "file": "galeria_supertonic_sid1.mp3",
+      "model": "supertonic3",
+      "voice": "sid1",
+      "text": "galeria",
+      "seconds_audio": 4.31,
+      "seconds_compute": 1.38,
+      "rtf": 0.32,
+      "f0_hz": 189
+    },
+    {
+      "file": "galeria_supertonic_sid2.mp3",
+      "model": "supertonic3",
+      "voice": "sid2",
+      "text": "galeria",
+      "seconds_audio": 4.74,
+      "seconds_compute": 1.56,
+      "rtf": 0.328,
+      "f0_hz": 175
+    },
+    {
+      "file": "galeria_supertonic_sid3.mp3",
+      "model": "supertonic3",
+      "voice": "sid3",
+      "text": "galeria",
+      "seconds_audio": 3.97,
+      "seconds_compute": 1.29,
+      "rtf": 0.326,
+      "f0_hz": 203
+    },
+    {
+      "file": "galeria_supertonic_sid4.mp3",
+      "model": "supertonic3",
+      "voice": "sid4",
+      "text": "galeria",
+      "seconds_audio": 4.44,
+      "seconds_compute": 1.38,
+      "rtf": 0.31,
+      "f0_hz": 161
+    },
+    {
+      "file": "galeria_supertonic_sid5.mp3",
+      "model": "supertonic3",
+      "voice": "sid5",
+      "text": "galeria",
+      "seconds_audio": 4.6,
+      "seconds_compute": 1.56,
+      "rtf": 0.34,
+      "f0_hz": 125
+    },
+    {
+      "file": "galeria_supertonic_sid6.mp3",
+      "model": "supertonic3",
+      "voice": "sid6",
+      "text": "galeria",
+      "seconds_audio": 4.49,
+      "seconds_compute": 1.56,
+      "rtf": 0.347,
+      "f0_hz": 86
+    },
+    {
+      "file": "galeria_supertonic_sid7.mp3",
+      "model": "supertonic3",
+      "voice": "sid7",
+      "text": "galeria",
+      "seconds_audio": 3.88,
+      "seconds_compute": 1.28,
+      "rtf": 0.33,
+      "f0_hz": 99
+    },
+    {
+      "file": "galeria_supertonic_sid8.mp3",
+      "model": "supertonic3",
+      "voice": "sid8",
+      "text": "galeria",
+      "seconds_audio": 4.3,
+      "seconds_compute": 1.32,
+      "rtf": 0.306,
+      "f0_hz": 113
+    },
+    {
+      "file": "galeria_supertonic_sid9.mp3",
+      "model": "supertonic3",
+      "voice": "sid9",
+      "text": "galeria",
+      "seconds_audio": 4.59,
+      "seconds_compute": 1.53,
+      "rtf": 0.334,
+      "f0_hz": 91
+    },
+    {
+      "file": "sk_proza_supertonic_sid3.mp3",
+      "model": "supertonic3",
+      "voice": "sid3",
+      "text": "sk_proza",
+      "seconds_audio": 20.68,
+      "seconds_compute": 5.9,
+      "rtf": 0.285,
+      "f0_hz": 196
+    },
+    {
+      "file": "sk_proza_supertonic_sid6.mp3",
+      "model": "supertonic3",
+      "voice": "sid6",
+      "text": "sk_proza",
+      "seconds_audio": 23.36,
+      "seconds_compute": 6.42,
+      "rtf": 0.275,
+      "f0_hz": 88
+    },
+    {
+      "file": "sk_zradny_supertonic_sid3.mp3",
+      "model": "supertonic3",
+      "voice": "sid3",
+      "text": "sk_zradny",
+      "seconds_audio": 28.5,
+      "seconds_compute": 10.78,
+      "rtf": 0.378,
+      "f0_hz": 196
+    },
+    {
+      "file": "sk_zradny_supertonic_sid6.mp3",
+      "model": "supertonic3",
+      "voice": "sid6",
+      "text": "sk_zradny",
+      "seconds_audio": 30.51,
+      "seconds_compute": 8.97,
+      "rtf": 0.294,
+      "f0_hz": 89
+    },
+    {
+      "file": "en_prose_supertonic_sid3.mp3",
+      "model": "supertonic3",
+      "voice": "sid3",
+      "text": "en_prose",
+      "seconds_audio": 17.6,
+      "seconds_compute": 5.62,
+      "rtf": 0.319,
+      "f0_hz": 192
+    },
+    {
+      "file": "en_prose_supertonic_sid6.mp3",
+      "model": "supertonic3",
+      "voice": "sid6",
+      "text": "en_prose",
+      "seconds_audio": 20.07,
+      "seconds_compute": 5.4,
+      "rtf": 0.269,
+      "f0_hz": 88
+    },
+    {
+      "file": "en_tricky_supertonic_sid3.mp3",
+      "model": "supertonic3",
+      "voice": "sid3",
+      "text": "en_tricky",
+      "seconds_audio": 19.43,
+      "seconds_compute": 5.43,
+      "rtf": 0.279,
+      "f0_hz": 193
+    },
+    {
+      "file": "en_tricky_supertonic_sid6.mp3",
+      "model": "supertonic3",
+      "voice": "sid6",
+      "text": "en_tricky",
+      "seconds_audio": 22.0,
+      "seconds_compute": 6.0,
+      "rtf": 0.273,
+      "f0_hz": 88
+    },
+    {
+      "file": "sk_proza_supertonic_sid3_16krokov.mp3",
+      "model": "supertonic3-16steps",
+      "voice": "sid3",
+      "text": "sk_proza",
+      "seconds_audio": 20.68,
+      "seconds_compute": 11.45,
+      "rtf": 0.554,
+      "f0_hz": 193
+    },
+    {
+      "file": "sk_proza_piper_lili.mp3",
+      "model": "piper-sk-lili",
+      "voice": "lili",
+      "text": "sk_proza",
+      "seconds_audio": 17.81,
+      "seconds_compute": 1.13,
+      "rtf": 0.063,
+      "f0_hz": 195
+    },
+    {
+      "file": "sk_zradny_piper_lili.mp3",
+      "model": "piper-sk-lili",
+      "voice": "lili",
+      "text": "sk_zradny",
+      "seconds_audio": 23.44,
+      "seconds_compute": 1.46,
+      "rtf": 0.062,
+      "f0_hz": 197
+    },
+    {
+      "file": "en_prose_kokoro_af_heart.mp3",
+      "model": "kokoro-v1.0",
+      "voice": "af_heart",
+      "text": "en_prose",
+      "seconds_audio": 14.89,
+      "seconds_compute": 23.72,
+      "rtf": 1.593,
+      "f0_hz": 195
+    },
+    {
+      "file": "en_prose_kokoro_am_michael.mp3",
+      "model": "kokoro-v1.0",
+      "voice": "am_michael",
+      "text": "en_prose",
+      "seconds_audio": 16.7,
+      "seconds_compute": 26.93,
+      "rtf": 1.612,
+      "f0_hz": 114
+    },
+    {
+      "file": "en_tricky_kokoro_af_heart.mp3",
+      "model": "kokoro-v1.0",
+      "voice": "af_heart",
+      "text": "en_tricky",
+      "seconds_audio": 11.88,
+      "seconds_compute": 21.78,
+      "rtf": 1.834,
+      "f0_hz": 203
+    },
+    {
+      "file": "en_tricky_kokoro_am_michael.mp3",
+      "model": "kokoro-v1.0",
+      "voice": "am_michael",
+      "text": "en_tricky",
+      "seconds_audio": 13.26,
+      "seconds_compute": 24.41,
+      "rtf": 1.841,
+      "f0_hz": 119
+    },
+    {
+      "file": "en_prose_kokoro_bf_emma.mp3",
+      "model": "kokoro-v1.0",
+      "voice": "bf_emma",
+      "text": "en_prose",
+      "seconds_audio": 15.89,
+      "seconds_compute": 26.7,
+      "rtf": 1.68,
+      "f0_hz": 180
+    },
+    {
+      "file": "en_tricky_kokoro_af_heart_bez_espeak.mp3",
+      "model": "kokoro-v1.0-no-espeak",
+      "voice": "af_heart",
+      "text": "en_tricky",
+      "seconds_audio": 11.86,
+      "seconds_compute": 21.75,
+      "rtf": 1.834,
+      "f0_hz": 205
+    }
+  ]
+}
