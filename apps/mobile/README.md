@@ -4,7 +4,26 @@ Expo (React Native) appka. Používa rovnaký engine (`packages/tts`), normaliz�
 Hlas Supertonic 3 beží v telefóne cez onnxruntime-react-native na CPU. Model (asi 380 MB) sa stiahne pri prvom
 prehrávaní do telefónu a potom hlas funguje aj bez internetu. PDF číta pdf.js v skrytom WebView, rovnako ako na webe.
 
-## Prvá inštalácia do iPhonu (bez Macu)
+## Nová verzia cez TestFlight (hlavná cesta)
+
+Appka sa postaví v cloude cez EAS (macOS s Xcode), podpíše sa Apple Developer účtom a nahrá do App Store Connect.
+Do iPhonu sa inštaluje appkou **TestFlight**, bez režimu pre vývojárov a bez servera na počítači. Každá ďalšia verzia
+príde v TestFlighte ako aktualizácia. EAS stavia to, čo je commitnuté.
+
+V priečinku `apps/mobile` (v PowerShelli cez `eas.cmd`, pozri nižšie):
+
+```bash
+eas.cmd build -p ios --profile production --auto-submit
+```
+
+- Pri prvom spustení sa EAS spýta na Apple účet, vytvorí distribučný certifikát a App Store profil a ak appka v App
+  Store Connect ešte nie je, založí ju (názov v obchode musí byť jedinečný; ak je „Audiokniha“ obsadený, zvoľ iný,
+  názov pod ikonou v telefóne sa tým nemení).
+- Build trvá 15–30 minút, potom ho Apple spracúva ďalších 5–15 minút. Číslo buildu sa zvyšuje samo.
+- V App Store Connect → appka → **TestFlight** pridaj seba do **Internal Testing** (stačí raz). V iPhone potom v
+  appke TestFlight ťukni **Inštalovať** / **Aktualizovať**.
+
+## Development build (rýchle úpravy cez Wi‑Fi)
 
 Postaví sa v cloude cez EAS a nainštaluje ako „development build“. Potom sa zmeny v kóde dostanú do telefónu cez Wi‑Fi
 z počítača, bez ďalšieho buildu.

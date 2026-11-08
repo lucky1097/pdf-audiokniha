@@ -6,6 +6,7 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
     "ios": {
       "bundleIdentifier": "com.lucky1097.audiokniha",
       "supportsTablet": false,
@@ -20,7 +21,6 @@
       }
     },
     "plugins": [
-      "onnxruntime-react-native",
       [
         "expo-audio",
         {
