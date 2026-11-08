@@ -29,14 +29,40 @@ export interface PdfResult {
   book: Book;
 }
 
+// WebKit cannot iterate a ReadableStream with for-await. pdf.js does that when it decompresses fonts and
+// other streams, and its fallback loses font character maps and the outline, so the iterator is added
+// to the page and to the pdf.js worker. Same code as apps/web/src/lib/stream-iterator.ts.
+const STREAM_ITERATOR = `
+(function () {
+  var proto = ReadableStream.prototype;
+  if (typeof proto[Symbol.asyncIterator] === "function") return;
+  var values = function (opts) {
+    var preventCancel = !!(opts && opts.preventCancel);
+    var reader = this.getReader();
+    var it = {
+      next: function () { return reader.read().then(function (r) { if (r.done) reader.releaseLock(); return r; }); },
+      return: function (value) {
+        var done = function () { reader.releaseLock(); return { done: true, value: value }; };
+        return preventCancel ? Promise.resolve(done()) : reader.cancel(value).then(done);
+      },
+    };
+    it[Symbol.asyncIterator] = function () { return it; };
+    return it;
+  };
+  Object.defineProperty(proto, "values", { value: values, writable: true, configurable: true });
+  Object.defineProperty(proto, Symbol.asyncIterator, { value: values, writable: true, configurable: true });
+})();
+`;
+
 // Runs inside the WebView. Kept as plain JS (no TypeScript) since it is sent as text.
 const READER = `
+${STREAM_ITERATOR}
 window.__read = async function (b64) {
   const post = (m) => window.ReactNativeWebView.postMessage(JSON.stringify(m));
   try {
     const blobUrl = (src) => URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
     const pdfjs = await import(blobUrl(window.__PDFJS_LIB));
-    pdfjs.GlobalWorkerOptions.workerSrc = blobUrl(window.__PDFJS_WORKER);
+    pdfjs.GlobalWorkerOptions.workerSrc = blobUrl(window.__STREAM_ITERATOR + window.__PDFJS_WORKER);
     const bin = atob(b64);
     const data = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i);
@@ -81,7 +107,7 @@ window.__read = async function (b64) {
 true;
 `;
 
-const SETUP = `window.__PDFJS_LIB = ${JSON.stringify(PDFJS_LIB)};\nwindow.__PDFJS_WORKER = ${JSON.stringify(PDFJS_WORKER)};\n${READER}`;
+const SETUP = `window.__PDFJS_LIB = ${JSON.stringify(PDFJS_LIB)};\nwindow.__PDFJS_WORKER = ${JSON.stringify(PDFJS_WORKER)};\nwindow.__STREAM_ITERATOR = ${JSON.stringify(STREAM_ITERATOR)};\n${READER}`;
 
 interface Props {
   /** The PDF as base64; a new value starts a new read. */

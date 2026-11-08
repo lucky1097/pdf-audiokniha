@@ -33,6 +33,7 @@ interface Tensor {
 }
 interface Session {
   run(feeds: Record<string, unknown>): Promise<Record<string, Tensor>>;
+  release?(): Promise<void>;
 }
 export interface OrtLike {
   Tensor: new (type: string, data: Float32Array | BigInt64Array, dims: number[]) => unknown;
@@ -52,8 +53,13 @@ export interface SupertonicAssets {
   };
   indexer: number[];
   styles: Partial<Record<Voice, StyleJson>>;
-  models: Record<"duration_predictor" | "text_encoder" | "vector_estimator" | "vocoder", string | Uint8Array>;
+  /** A path, the bytes, or a loader called just before that model's session is created, so a phone never
+      holds more than one model file in memory at a time (the four together are about 400 MB). */
+  models: Record<ModelName, ModelSource>;
 }
+
+type ModelName = "duration_predictor" | "text_encoder" | "vector_estimator" | "vocoder";
+export type ModelSource = string | Uint8Array | (() => Promise<string | Uint8Array>);
 
 /** Text clean-up the model was trained with (from the official example). */
 export function preprocess(text: string, lang: Lang): string {
@@ -104,10 +110,11 @@ export class SupertonicEngine implements TtsEngine {
   readonly sampleRate: number;
   private styleCache = new Map<Voice, { ttl: unknown; dp: unknown }>();
   private ort: OrtLike;
-  private assets: SupertonicAssets;
-  private sessions: Record<keyof SupertonicAssets["models"], Session>;
+  /** Everything but the model bytes, which the runtime has copied into its own memory by now. */
+  private assets: Omit<SupertonicAssets, "models">;
+  private sessions: Record<ModelName, Session>;
 
-  private constructor(ort: OrtLike, assets: SupertonicAssets, sessions: Record<keyof SupertonicAssets["models"], Session>) {
+  private constructor(ort: OrtLike, assets: Omit<SupertonicAssets, "models">, sessions: Record<ModelName, Session>) {
     this.ort = ort;
     this.assets = assets;
     this.sessions = sessions;
@@ -115,12 +122,25 @@ export class SupertonicEngine implements TtsEngine {
     this.sampleRate = assets.config.ae.sample_rate;
   }
 
+  /** Creates the four sessions one by one. If one fails, those already created are released. */
   static async create(ort: OrtLike, assets: SupertonicAssets, sessionOptions: unknown = {}): Promise<SupertonicEngine> {
-    const sessions = {} as Record<keyof SupertonicAssets["models"], Session>;
-    for (const name of ["duration_predictor", "text_encoder", "vector_estimator", "vocoder"] as const) {
-      sessions[name] = await ort.InferenceSession.create(assets.models[name], sessionOptions);
+    const { models, ...rest } = assets;
+    const sessions: Partial<Record<ModelName, Session>> = {};
+    try {
+      for (const name of ["duration_predictor", "text_encoder", "vector_estimator", "vocoder"] as const) {
+        const src = models[name];
+        sessions[name] = await ort.InferenceSession.create(typeof src === "function" ? await src() : src, sessionOptions);
+      }
+    } catch (e) {
+      await Promise.all(Object.values(sessions).map((s) => s.release?.().catch(() => {})));
+      throw e;
     }
-    return new SupertonicEngine(ort, assets, sessions);
+    return new SupertonicEngine(ort, rest, sessions as Record<ModelName, Session>);
+  }
+
+  /** Frees the sessions' memory (weights on the GPU or in WASM); the engine cannot be used afterwards. */
+  async release(): Promise<void> {
+    await Promise.all(Object.values(this.sessions).map((s) => s.release?.().catch(() => {})));
   }
 
   private style(voice: Voice) {

@@ -22,58 +22,72 @@ ort.env.wasm.wasmPaths = import.meta.env.DEV ? new URL("/ort/", self.location.or
 const threadsParam = new URL(self.location.href).searchParams.get("threads");
 ort.env.wasm.numThreads = threadsParam ? Number(threadsParam) : self.crossOriginIsolated ? Math.min(8, navigator.hardwareConcurrency || 4) : 1;
 
-async function download(base: string): Promise<Map<string, ArrayBuffer>> {
-  const cache = await caches.open(CACHE);
-  const out = new Map<string, ArrayBuffer>();
-  // Sizes are only known as files arrive; report bytes so the UI can show progress.
+/** Downloads the missing files straight into Cache Storage. The body streams through a byte counter into
+    the cache, so a file is never held in memory: on an iPhone, Safari closes a tab that holds the 400 MB
+    model several times over ("a problem repeatedly occurred"). */
+async function download(base: string, cache: Cache): Promise<void> {
   let loaded = 0;
   for (const [i, file] of FILES.entries()) {
     const url = `${base}/${file}`;
-    let res = await cache.match(url);
-    if (!res) {
+    const cached = await cache.match(url);
+    let size = Number(cached?.headers.get("x-size")) || 0;
+    if (!cached) {
       const net = await fetch(url, { mode: "cors" });
       if (!net.ok || !net.body) throw new Error(`${file}: HTTP ${net.status}`);
       const total = Number(net.headers.get("content-length")) || 0;
-      const reader = net.body.getReader();
-      const chunks: Uint8Array[] = [];
       let got = 0;
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        got += value.length;
-        post({ type: "progress", file, fileIndex: i, files: FILES.length, bytes: loaded + got, fileBytes: got, fileTotal: total });
+      let last = 0;
+      const counter = new TransformStream<Uint8Array, Uint8Array>({
+        transform(chunk, ctl) {
+          got += chunk.byteLength;
+          // A progress message per network chunk floods the main thread; a few per megabyte is plenty.
+          if (got - last > 256 * 1024) {
+            last = got;
+            post({ type: "progress", file, fileIndex: i, files: FILES.length, bytes: loaded + got, fileBytes: got, fileTotal: total });
+          }
+          ctl.enqueue(chunk);
+        },
+      });
+      // cache.put stores the entry only once the whole body has arrived, so a broken download leaves nothing.
+      // The size header is known up front only from the server; the check below catches a short body.
+      const headers = { "Content-Type": "application/octet-stream", "x-size": String(total) };
+      await cache.put(url, new Response(net.body.pipeThrough(counter), { headers }));
+      if (total && got !== total) {
+        await cache.delete(url);
+        throw new Error(`${file}: download incomplete (${got} of ${total} B)`);
       }
-      const blob = new Blob(chunks as BlobPart[]);
-      await cache.put(url, new Response(blob, { headers: { "Content-Type": "application/octet-stream" } }));
-      res = new Response(blob);
+      size = got;
     }
-    const buf = await res.arrayBuffer();
-    loaded += buf.byteLength;
-    out.set(file, buf);
-    post({ type: "progress", file, fileIndex: i + 1, files: FILES.length, bytes: loaded, fileBytes: buf.byteLength, fileTotal: buf.byteLength });
+    loaded += size;
+    post({ type: "progress", file, fileIndex: i + 1, files: FILES.length, bytes: loaded, fileBytes: size, fileTotal: size });
   }
-  return out;
 }
 
 let engine: SupertonicEngine | null = null;
 let backend: "webgpu" | "wasm" = "wasm";
 
 async function init(base: string, preferGpu: boolean): Promise<void> {
-  const files = await download(base);
-  const json = (f: string) => JSON.parse(new TextDecoder().decode(files.get(f)!));
+  const cache = await caches.open(CACHE);
+  await download(base, cache);
+  const read = async (f: string) => {
+    const res = await cache.match(`${base}/${f}`);
+    if (!res) throw new Error(`${f}: missing from the cache`);
+    return new Uint8Array(await res.arrayBuffer());
+  };
+  const json = async (f: string) => JSON.parse(new TextDecoder().decode(await read(f)));
   const styles: SupertonicAssets["styles"] = {};
-  for (const v of VOICES) styles[v] = json(`voice_styles/${v}.json`);
+  for (const v of VOICES) styles[v] = await json(`voice_styles/${v}.json`);
   const assets: SupertonicAssets = {
     modelId: "supertonic-3-fp32",
-    config: json("onnx/tts.json"),
-    indexer: json("onnx/unicode_indexer.json"),
+    config: await json("onnx/tts.json"),
+    indexer: await json("onnx/unicode_indexer.json"),
     styles,
+    // Loaded one at a time as each session is created, then dropped (the runtime keeps its own copy).
     models: {
-      duration_predictor: new Uint8Array(files.get("onnx/duration_predictor.onnx")!),
-      text_encoder: new Uint8Array(files.get("onnx/text_encoder.onnx")!),
-      vector_estimator: new Uint8Array(files.get("onnx/vector_estimator.onnx")!),
-      vocoder: new Uint8Array(files.get("onnx/vocoder.onnx")!),
+      duration_predictor: () => read("onnx/duration_predictor.onnx"),
+      text_encoder: () => read("onnx/text_encoder.onnx"),
+      vector_estimator: () => read("onnx/vector_estimator.onnx"),
+      vocoder: () => read("onnx/vocoder.onnx"),
     },
   };
   const o = ort as unknown as OrtLike;
@@ -85,9 +99,13 @@ async function init(base: string, preferGpu: boolean): Promise<void> {
       return;
     } catch (e) {
       console.warn("WebGPU failed, using WASM", e);
+      // Free the GPU sessions before loading the model again for WASM.
+      await engine?.release();
+      engine = null;
     }
   }
-  engine = await SupertonicEngine.create(o, assets, { executionProviders: ["wasm"], graphOptimizationLevel: "all" });
+  // No memory arena: the arena keeps the largest working buffers allocated forever, which a phone cannot spare.
+  engine = await SupertonicEngine.create(o, assets, { executionProviders: ["wasm"], graphOptimizationLevel: "all", enableCpuMemArena: false });
   backend = "wasm";
 }
 

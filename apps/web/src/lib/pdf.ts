@@ -2,8 +2,13 @@ import { extractBook, type Book, type OutlineEntry, type PdfPage } from "@audiok
 // The legacy build: the default one assumes the newest browser features (Map.getOrInsertComputed,
 // Math.sumPrecise…) that Safari on the iPhone does not have yet; legacy ships polyfills for them.
 import { GlobalWorkerOptions, getDocument, type PDFPageProxy } from "pdfjs-dist/legacy/build/pdf.mjs";
+import "./stream-iterator.ts";
 
-GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/legacy/build/pdf.worker.min.mjs", import.meta.url).href;
+/** Our own worker entry: the pdf.js worker with the Safari stream iterator installed first. pdf.js keeps
+    a worker given as a port alive between documents, so it is created once. */
+function ensureWorker() {
+  GlobalWorkerOptions.workerPort ??= new Worker(new URL("../workers/pdf.worker.ts", import.meta.url), { type: "module" });
+}
 
 type TextItem = Awaited<ReturnType<PDFPageProxy["getTextContent"]>>["items"][number];
 
@@ -28,6 +33,7 @@ export interface ImportedPdf {
 
 /** Read a PDF file into chapters with the same layout rules as the CLI. */
 export async function importPdf(file: File, onPage?: (n: number, total: number) => void): Promise<ImportedPdf> {
+  ensureWorker();
   const task = getDocument({ data: new Uint8Array(await file.arrayBuffer()), verbosity: 0 });
   const doc = await task.promise;
   try {
