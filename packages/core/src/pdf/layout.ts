@@ -34,6 +34,8 @@ export interface Line {
   y: number;
   fontSize: number;
   page: number;
+  /** A footnote marker was taken out of this line, so the page has footnotes. */
+  noteMark?: boolean;
 }
 
 export interface Chapter {
@@ -91,13 +93,46 @@ const median = (xs: number[]) => {
   return s[Math.floor(s.length / 2)];
 };
 
+const NOTE_MARK = /^[\d*†‡§]{1,4}$/;
+
+/** Two runs on one line: the same baseline, or a small run raised above a larger one (a footnote marker "slovo¹"). */
+function sameLine(a: TextItem, b: TextItem): boolean {
+  const d = Math.abs(a.y - b.y);
+  const [small, large] = a.fontSize < b.fontSize ? [a, b] : [b, a];
+  if (d <= Math.max(1.5, large.fontSize * 0.4)) return true;
+  // Markers are numbers or signs raised by 0.3-0.5 em, depending on the typesetter; never lowered.
+  return NOTE_MARK.test(small.str.trim()) && small.fontSize < large.fontSize * 0.75 && small.y > large.y && small.y - large.y <= large.fontSize * 0.6;
+}
+
+/**
+ * Drop caps: the first letter of a section set large over two or three lines ("T" + "he powers of…"). Returns the
+ * runs without them, and moves each letter to the start of the top line beside it, so the word is whole again.
+ */
+function dropCaps(items: TextItem[]): { items: TextItem[]; caps: { cap: TextItem; glue: boolean }[] } {
+  const size = median(items.filter((i) => i.str.trim()).map((i) => i.fontSize));
+  const caps: { cap: TextItem; glue: boolean }[] = [];
+  for (const c of items) {
+    if (!/^[„“"'‘]?\p{Lu}$/u.test(c.str.trim()) || c.fontSize < size * 2.2) continue;
+    // At least two lines of text right beside it, within its height.
+    const next = items.filter((i) => i !== c && i.str.trim() && beside(c, i));
+    if (new Set(next.map((i) => Math.round(i.y))).size < 2) continue;
+    const top = Math.max(...next.map((i) => i.y));
+    const first = next.filter((i) => Math.abs(i.y - top) < 1).sort((a, b) => a.x - b.x)[0];
+    // "T" + "he powers…". When the rest of the word is missing (a Safari PDF drops words in small caps and leaves
+    // a space where they were), the letter alone would only make a wrong word ("R" + "at to light" → "Rat").
+    caps.push({ cap: c, glue: /^\p{Ll}/u.test(first.str) });
+  }
+  return { items: items.filter((i) => !caps.some((c) => c.cap === i)), caps };
+}
+const beside = (cap: TextItem, i: TextItem) =>
+  i.x >= cap.x + cap.width * 0.5 && i.x - (cap.x + cap.width) < cap.fontSize * 1.5 && i.y >= cap.y - cap.fontSize * 0.15 && i.y <= cap.y + cap.fontSize * 0.95;
+
 /** Group text runs that share a baseline into lines, left to right. */
 export function buildLines(page: PdfPage): Line[] {
-  const items = page.items.filter((i) => i.str.length > 0);
+  const { items, caps } = dropCaps(page.items.filter((i) => i.str.length > 0));
   const rows: TextItem[][] = [];
   for (const it of [...items].sort((a, b) => b.y - a.y || a.x - b.x)) {
-    // Raised footnote markers sit ~0.4 em above the baseline of the larger text they belong to.
-    const row = rows.find((r) => Math.abs(r[0].y - it.y) <= Math.max(1.5, Math.max(it.fontSize, r[0].fontSize) * 0.4));
+    const row = rows.find((r) => r.some((x) => sameLine(x, it)));
     if (row) row.push(it);
     else rows.push([it]);
   }
@@ -110,7 +145,9 @@ export function buildLines(page: PdfPage): Line[] {
       if (!cur.length) return;
       // Footnote markers are small raised digits inside a line ("slovo¹"); drop them.
       const rowSize = median(cur.map((c) => c.fontSize));
-      cur = cur.filter((c) => !(c.fontSize < rowSize * 0.75 && /^[\d*†]+$/.test(c.str.trim())));
+      const before = cur.length;
+      cur = cur.filter((c) => !(c.fontSize < rowSize * 0.75 && NOTE_MARK.test(c.str.trim())));
+      const noteMark = cur.length < before;
       let text = "";
       let prevEnd = -Infinity;
       for (const it of cur) {
@@ -121,7 +158,9 @@ export function buildLines(page: PdfPage): Line[] {
       }
       const fs = median(cur.filter((c) => c.str.trim()).map((c) => c.fontSize));
       const t = text.replace(/\s+/g, " ").trim();
-      if (t) lines.push({ text: t, x: cur[0].x, right: prevEnd, y: cur[0].y, fontSize: fs, page: page.number });
+      // The line's baseline is its body text's, not a raised marker's.
+      const y = median(cur.filter((c) => c.fontSize >= fs * 0.75).map((c) => c.y));
+      if (t) lines.push({ text: t, x: cur[0].x, right: prevEnd, y, fontSize: fs, page: page.number, ...(noteMark && { noteMark }) });
       cur = [];
     };
     for (const it of row) {
@@ -130,6 +169,14 @@ export function buildLines(page: PdfPage): Line[] {
       cur.push(it);
     }
     flush();
+  }
+  for (const { cap, glue } of caps) {
+    const next = lines.filter((l) => beside(cap, { str: l.text, x: l.x, y: l.y, width: 0, fontSize: l.fontSize }));
+    if (!next.length) continue;
+    const top = next.reduce((a, b) => (b.y > a.y ? b : a));
+    if (glue) top.text = cap.str.trim() + top.text;
+    // The lines beside the letter start where it starts, so they are not taken for an indented new paragraph.
+    for (const l of next) l.x = cap.x;
   }
   return orderColumns(lines, page.width);
 }
@@ -188,14 +235,25 @@ export function extractBook(pages: PdfPage[], outline: OutlineEntry[] = []): Boo
       if (TOC_LINE.test(l.text)) return void removed.tocLines++;
       out.push(l);
     });
-    // Footnotes: a block of clearly smaller text at the bottom of the page.
-    let k = out.length;
-    while (k > 0 && out[k - 1].fontSize < bodySize * 0.85) k--;
-    if (k < out.length && k > 0) {
-      removed.footnotes += out.length - k;
-      out.length = k;
+    // Footnotes: blocks of clearly smaller text. Most books set them at the bottom of the page, some right after the
+    // paragraph that cites them. A block in the middle counts when it starts with its number ("85 U.S. Department…")
+    // or the page has a footnote marker; other small text in the middle (a caption, a quote) stays.
+    const marked = ls.some((l) => l.noteMark);
+    const small = (l: Line) => l.fontSize < bodySize * 0.85;
+    const text: Line[] = [];
+    for (let i = 0; i < out.length; ) {
+      if (!small(out[i])) {
+        text.push(out[i++]);
+        continue;
+      }
+      let j = i;
+      while (j < out.length && small(out[j])) j++;
+      const atBottom = j === out.length && i > 0;
+      if (atBottom || marked || /^(?:\d{1,3}|[*†‡])(?:\s|$)/.test(out[i].text)) removed.footnotes += j - i;
+      else text.push(...out.slice(i, j));
+      i = j;
     }
-    return out;
+    return text;
   });
 
   const lines = kept.flat();

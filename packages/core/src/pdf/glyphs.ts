@@ -9,7 +9,7 @@ import { LETTER_STATS } from "./letter-stats.ts";
 import type { PdfPage } from "./layout.ts";
 import { UNKNOWN_GLYPH_BASE, selfMapped } from "./tounicode.ts";
 
-const LIGATURES = ["fi", "fl", "ff", "ffi", "ffl"];
+const LIGATURES = ["fi", "fl", "ff", "ffi", "ffl", "ft", "fft", "fj"];
 const UNKNOWN = /[-]/;
 const UNKNOWN_ALL = /[-]/g;
 
