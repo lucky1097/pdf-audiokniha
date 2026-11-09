@@ -83,7 +83,7 @@ window.__read = async function (b64) {
       for (const it of raw) {
         if (!("str" in it)) continue;
         const [a, b, , d, e, f] = it.transform;
-        items.push({ str: it.str, x: e, y: f, width: it.width, fontSize: Math.hypot(a, b) || Math.abs(d) });
+        items.push({ str: it.str, x: e, y: f, width: it.width, fontSize: Math.hypot(a, b) || Math.abs(d), font: it.fontName });
       }
       pages.push({ number: n, width: page.view[2] - page.view[0], height: page.view[3] - page.view[1], items });
       page.cleanup();

@@ -9,6 +9,8 @@ export interface TextItem {
   y: number;
   width: number;
   fontSize: number;
+  /** pdf.js font id; lets a font whose text comes out as symbols be dropped (see garbledFonts). */
+  font?: string;
 }
 
 export interface PdfPage {
@@ -42,7 +44,44 @@ export interface Book {
   chapters: Chapter[];
   /** Pages that had (almost) no text: probably scanned images that need OCR. */
   imageOnlyPages: number[];
-  removed: { headers: number; pageNumbers: number; footnotes: number; tocLines: number };
+  removed: { headers: number; pageNumbers: number; footnotes: number; tocLines: number; garbled: number };
+}
+
+const ASCII_SYMBOL = /[!-/:-@[-`{-~]/;
+
+/**
+ * Fonts whose text came out as symbols instead of letters. Some PDF writers (Safari on iOS "Save as PDF", for
+ * one) store a wrong character map for a font, so "Acknowledgments" is extracted as `!"#$%&'()*+($,-`. Such a
+ * font is mostly ASCII punctuation; a real one is mostly letters (a digits-only font for page numbers has
+ * neither, so it is kept). `chars` counts the dropped characters that look like such a broken map, for a
+ * warning; fonts of only daggers or bullets are dropped quietly.
+ */
+export function garbledFonts(pages: PdfPage[]): { fonts: Set<string>; chars: number } {
+  const stats = new Map<string, { chars: number; letters: number; symbols: number; ascii: number }>();
+  for (const p of pages) {
+    for (const it of p.items) {
+      if (!it.font) continue;
+      let s = stats.get(it.font);
+      if (!s) stats.set(it.font, (s = { chars: 0, letters: 0, symbols: 0, ascii: 0 }));
+      for (const ch of it.str) {
+        if (/\s/.test(ch)) continue;
+        s.chars++;
+        if (/\p{L}/u.test(ch)) s.letters++;
+        else if (!/\p{N}/u.test(ch)) {
+          s.symbols++;
+          if (ASCII_SYMBOL.test(ch)) s.ascii++;
+        }
+      }
+    }
+  }
+  const fonts = new Set<string>();
+  let chars = 0;
+  for (const [font, s] of stats) {
+    if (!s.chars || s.letters / s.chars >= 0.35 || s.symbols / s.chars <= 0.5) continue;
+    fonts.add(font);
+    if (s.ascii / s.symbols >= 0.6) chars += s.chars;
+  }
+  return { fonts, chars };
 }
 
 const median = (xs: number[]) => {
@@ -119,7 +158,9 @@ const isPageNumber = (s: string) => PAGE_NUMBER_BARE.test(s) || PAGE_NUMBER_WORD
 const TOC_LINE = /(?:\.{3,}|…{2,}|(?:\.\s){3,})\s*\d{1,4}$/;
 
 export function extractBook(pages: PdfPage[], outline: OutlineEntry[] = []): Book {
-  const removed = { headers: 0, pageNumbers: 0, footnotes: 0, tocLines: 0 };
+  const garbled = garbledFonts(pages);
+  const removed = { headers: 0, pageNumbers: 0, footnotes: 0, tocLines: 0, garbled: garbled.chars };
+  if (garbled.fonts.size) pages = pages.map((p) => ({ ...p, items: p.items.filter((i) => !i.font || !garbled.fonts.has(i.font)) }));
   const perPage = pages.map(buildLines);
   const imageOnlyPages = pages.filter((p, i) => perPage[i].map((l) => l.text).join("").length < 20).map((p) => p.number);
 

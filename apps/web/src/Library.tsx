@@ -48,7 +48,7 @@ export function Library({ onOpen, openId, onDeleted }: { onOpen: (id: string) =>
         }
         await create(pdf.title, chapters.map((c, i) => ({ title: c.title || `Kapitola ${i + 1}`, paragraphs: c.paragraphs })), {
           author: pdf.author || undefined,
-          source: { file: file.name, pages: pdf.pageCount, imageOnlyPages: pdf.book.imageOnlyPages },
+          source: { file: file.name, pages: pdf.pageCount, imageOnlyPages: pdf.book.imageOnlyPages, garbledChars: pdf.book.removed.garbled },
         });
       } else {
         const text = await file.text();

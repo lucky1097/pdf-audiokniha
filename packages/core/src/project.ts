@@ -28,10 +28,15 @@ export interface Project {
   position: { chapter: number; segment: number };
   /** True while the user wants the whole book generated; generation resumes after a reload. */
   generating: boolean;
-  source?: { file: string; pages: number; imageOnlyPages: number[] };
+  /** garbledChars: characters left out because their font's character map in the PDF is broken. */
+  source?: { file: string; pages: number; imageOnlyPages: number[]; garbledChars?: number };
   created: number;
   updated: number;
 }
+
+/** Shown on a book whose PDF had fonts with a broken character map (Book.removed.garbled). */
+export const GARBLED_NOTE =
+  "Časť textu je v tomto PDF uložená poškodene, dá sa prečítať len ako symboly (stáva sa to napríklad pri PDF uloženom cez Safari), preto ju kniha vynecháva. Pôvodné PDF to zvyčajne nemá.";
 
 export const MODEL_ID = "supertonic-3-fp32";
 export const SENTENCE_GAP = 0.35;

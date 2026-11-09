@@ -53,7 +53,7 @@ export async function importPdf(file: File, onPage?: (n: number, total: number) 
       for (const it of await textItems(page)) {
         if (!("str" in it)) continue;
         const [a, b, , d, e, f] = it.transform as number[];
-        items.push({ str: it.str, x: e, y: f, width: it.width, fontSize: Math.hypot(a, b) || Math.abs(d) });
+        items.push({ str: it.str, x: e, y: f, width: it.width, fontSize: Math.hypot(a, b) || Math.abs(d), font: it.fontName });
       }
       pages.push({ number: n, width: page.view[2] - page.view[0], height: page.view[3] - page.view[1], items });
       page.cleanup();

@@ -1,9 +1,11 @@
-import type { Voice } from "@audiokniha/core";
+import { GARBLED_NOTE, type Voice } from "@audiokniha/core";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BookController, type BookState } from "./lib/book.ts";
 import { getProject } from "./lib/storage.ts";
+import { PlayerBar } from "./PlayerBar.tsx";
+import { ReadAlong } from "./ReadAlong.tsx";
 import { useColors, type Colors } from "./theme.ts";
 import { Bar, Button, Cover, Note } from "./ui.tsx";
 
@@ -30,11 +32,20 @@ function Book({ ctl, onBack }: { ctl: BookController; onBack: () => void }) {
   const st = useSyncExternalStore(ctl.subscribe, ctl.getState);
   const [open, setOpen] = useState<number | null>(null);
   const [voices, setVoices] = useState(false);
+  const [reading, setReading] = useState(false);
   const p = st.project;
   const ready = st.ready.reduce((a, b) => a + b, 0);
   const total = st.total.reduce((a, b) => a + b, 0);
+  const readAlong = reading && <ReadAlong ctl={ctl} st={st} onClose={() => setReading(false)} />;
 
-  if (open !== null) return <ChapterText ctl={ctl} st={st} chapter={open} onBack={() => setOpen(null)} />;
+  if (open !== null) {
+    return (
+      <>
+        <ChapterText ctl={ctl} st={st} chapter={open} onBack={() => setOpen(null)} onOpenText={() => setReading(true)} />
+        {readAlong}
+      </>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
@@ -51,6 +62,8 @@ function Book({ ctl, onBack }: { ctl: BookController; onBack: () => void }) {
         </View>
 
         <Status st={st} c={c} onRetry={() => ctl.retry()} />
+        {p.source?.imageOnlyPages.length ? <Note tone="warn">{p.source.imageOnlyPages.length} strán PDF je len naskenovaný obrázok, ich text v knihe chýba.</Note> : null}
+        {p.source?.garbledChars ? <Note tone="warn">{GARBLED_NOTE}</Note> : null}
 
         <View style={[s.card, { backgroundColor: c.surface }]}>
           <Text style={{ color: c.ink, fontSize: 15 }}>
@@ -99,7 +112,8 @@ function Book({ ctl, onBack }: { ctl: BookController; onBack: () => void }) {
           </Pressable>
         ))}
       </ScrollView>
-      <PlayerBar ctl={ctl} st={st} />
+      <PlayerBar ctl={ctl} st={st} onOpenText={() => setReading(true)} />
+      {readAlong}
     </View>
   );
 }
@@ -127,7 +141,7 @@ function Status({ st, c, onRetry }: { st: BookState; c: Colors; onRetry: () => v
   return null;
 }
 
-function ChapterText({ ctl, st, chapter, onBack }: { ctl: BookController; st: BookState; chapter: number; onBack: () => void }) {
+function ChapterText({ ctl, st, chapter, onBack, onOpenText }: { ctl: BookController; st: BookState; chapter: number; onBack: () => void; onOpenText: () => void }) {
   const c = useColors();
   const insets = useSafeAreaInsets();
   // Rebuilt when the project changes (a seed, the voice); ready flags come with each state change.
@@ -158,42 +172,7 @@ function ChapterText({ ctl, st, chapter, onBack }: { ctl: BookController; st: Bo
           );
         }}
       />
-      <PlayerBar ctl={ctl} st={st} />
-    </View>
-  );
-}
-
-function PlayerBar({ ctl, st }: { ctl: BookController; st: BookState }) {
-  const c = useColors();
-  const insets = useSafeAreaInsets();
-  const total = st.total[st.chapter] ?? 0;
-  const ch = st.project.chapters[st.chapter];
-  return (
-    <View style={[s.player, { backgroundColor: c.raised, borderColor: c.line, paddingBottom: insets.bottom + 10 }]}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <Cover title={st.project.title} size={44} />
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: c.ink, fontWeight: "600", fontSize: 15 }} numberOfLines={1}>{ch?.title || `Kapitola ${st.chapter + 1}`}</Text>
-          <Text style={{ color: c.ink2, fontSize: 13 }} numberOfLines={1}>
-            {st.waiting ? "Pripravujem hlas…" : `Veta ${Math.min(st.sentence + 1, total)} z ${total}`}
-            {st.rtf ? ` · ${st.rtf < 1 ? "stíha" : "nestíha"} (${st.rtf.toFixed(2)}×)` : ""}
-          </Text>
-        </View>
-        <Pressable accessibilityLabel="Rýchlosť" onPress={() => ctl.cycleRate()} style={[s.rate, { borderColor: c.line }]}>
-          <Text style={{ color: c.ink, fontWeight: "600" }}>{String(st.rate).replace(".", ",")}×</Text>
-        </Pressable>
-      </View>
-      <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 36 }}>
-        <Pressable accessibilityLabel="Predchádzajúca veta" hitSlop={10} onPress={() => ctl.previous()}>
-          <Text style={{ color: c.ink, fontSize: 26 }}>⏮</Text>
-        </Pressable>
-        <Pressable accessibilityLabel={st.playing ? "Pozastaviť" : "Prehrať"} onPress={() => ctl.toggle()} style={[s.play, { backgroundColor: c.accent }]}>
-          <Text style={{ color: c.onAccent, fontSize: 24, fontWeight: "700" }}>{st.playing ? "❚❚" : "▶"}</Text>
-        </Pressable>
-        <Pressable accessibilityLabel="Ďalšia veta" hitSlop={10} onPress={() => ctl.next()}>
-          <Text style={{ color: c.ink, fontSize: 26 }}>⏭</Text>
-        </Pressable>
-      </View>
+      <PlayerBar ctl={ctl} st={st} onOpenText={onOpenText} />
     </View>
   );
 }
@@ -206,7 +185,4 @@ const s = StyleSheet.create({
   chapter: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 52, borderBottomWidth: StyleSheet.hairlineWidth },
   sentence: { flexDirection: "row", gap: 10, alignItems: "flex-start", padding: 10, borderRadius: 10 },
   again: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, marginTop: 2 },
-  player: { position: "absolute", left: 0, right: 0, bottom: 0, borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingTop: 12, gap: 10 },
-  rate: { borderWidth: 1, borderRadius: 999, minWidth: 56, height: 36, alignItems: "center", justifyContent: "center" },
-  play: { width: 60, height: 60, borderRadius: 30, alignItems: "center", justifyContent: "center" },
 });

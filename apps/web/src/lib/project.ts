@@ -2,6 +2,7 @@
 import { wavBytes } from "@audiokniha/core";
 
 export {
+  GARBLED_NOTE,
   MODEL_ID,
   PARAGRAPH_GAP,
   SENTENCE_GAP,

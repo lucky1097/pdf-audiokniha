@@ -65,7 +65,7 @@ export function Library({ onOpen }: { onOpen: (id: string) => void }) {
       }
       create(r.title, chapters.map((ch, i) => ({ title: ch.title || `Kapitola ${i + 1}`, paragraphs: ch.paragraphs })), {
         author: r.author || undefined,
-        source: { file: name, pages: r.pageCount, imageOnlyPages: r.book.imageOnlyPages },
+        source: { file: name, pages: r.pageCount, imageOnlyPages: r.book.imageOnlyPages, garbledChars: r.book.removed.garbled },
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

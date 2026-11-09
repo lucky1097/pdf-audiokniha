@@ -16,7 +16,7 @@ export async function readPdf(path: string): Promise<{ pages: PdfPage[]; outline
     for (const it of content.items) {
       if (!("str" in it)) continue;
       const [a, b, , d, e, f] = it.transform as number[];
-      items.push({ str: it.str, x: e, y: f, width: it.width, fontSize: Math.hypot(a, b) || Math.abs(d) });
+      items.push({ str: it.str, x: e, y: f, width: it.width, fontSize: Math.hypot(a, b) || Math.abs(d), font: it.fontName });
     }
     pages.push({ number: n, width: view[2] - view[0], height: view[3] - view[1], items });
   }

@@ -5,7 +5,7 @@ import { formatDuration, useStore } from "./hooks.ts";
 import { AI_NOTICE, exportBook } from "./lib/export.ts";
 import { generator } from "./lib/generator.ts";
 import { player } from "./lib/player.ts";
-import { chapterSentences, wavBlob, type Project } from "./lib/project.ts";
+import { GARBLED_NOTE, chapterSentences, wavBlob, type Project } from "./lib/project.ts";
 import { MODEL_BYTES, tts } from "./lib/tts-client.ts";
 import { Cover } from "./ui/Cover.tsx";
 import { IconCheck, IconChevronRight, IconDownload, IconSpeaker, IconStop, IconText, Spinner } from "./ui/icons.tsx";
@@ -56,6 +56,7 @@ export function BookView({ book, update, onOpenChapter }: { book: Project; updat
           {book.source?.imageOnlyPages.length ? (
             <p className="note-warn">{book.source.imageOnlyPages.length} strán PDF je len naskenovaný obrázok, ich text v knihe chýba.</p>
           ) : null}
+          {book.source?.garbledChars ? <p className="note-warn">{GARBLED_NOTE}</p> : null}
         </div>
       </header>
 
