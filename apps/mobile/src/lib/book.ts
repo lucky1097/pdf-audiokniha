@@ -2,7 +2,7 @@
 // Generation runs ahead of the player (the next few sentences first), then the rest of the book when the user
 // asks for it. iOS keeps the app running while audio plays, so it keeps generating with the screen locked.
 import { PARAGRAPH_GAP, SENTENCE_GAP, chapterSentences, wavBytes, type Project, type Sentence } from "@audiokniha/core";
-import { clearPreloadedSource, createAudioPlayer, preload, setAudioModeAsync, type AudioPlayer, type AudioStatus } from "expo-audio";
+import { createAudioPlayer, setAudioModeAsync, type AudioPlayer, type AudioStatus } from "expo-audio";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { NO_VOICE_MESSAGE, downloadModel, loadEngine, modelDownloaded, synthesize, voiceAvailable, type DownloadProgress } from "./engine.ts";
 import { audioFile, hasAudio, saveProject, writeAudio } from "./storage.ts";
@@ -53,7 +53,8 @@ export class BookController {
   /** Play/pause reports from the player right after our own command are its echo, not the user's. */
   private quietUntil = 0;
   private lastStatusAt = 0;
-  private preloaded: string | null = null;
+  /** When the current sentence was loaded, to notice one that never starts. */
+  private loadedAt = 0;
   private watchdog: ReturnType<typeof setInterval> | null = null;
   private pumping = false;
   private disposed = false;
@@ -171,7 +172,6 @@ export class BookController {
         ready[job.chapter] += 1;
         this.set({ ready, rtf: (Date.now() - t0) / 1000 / (pcm.length / sampleRate) });
         if (this.state.waiting) void this.playCurrent();
-        else if (this.state.playing) this.preloadNext();
       }
       if (this.state.project.generating && !this.nextJob()) this.update({ generating: false });
       this.set({ phase: "idle" });
@@ -229,37 +229,26 @@ export class BookController {
       this.started = true;
       // Play from the lock screen, Control Center or headphones goes to the player directly.
       if (!this.state.playing) this.set({ playing: true });
-    } else if (this.started && this.state.playing && st.duration > 0 && st.currentTime < st.duration - 0.25) {
+    } else if (this.started && this.state.playing && st.duration > 0 && st.currentTime < st.duration - 0.6) {
+      // (Every sentence ends with at least 0.35 s of silence, so a stop this far from the end is not its end.)
       // Stopped by someone else: a call, Siri, headphones taken out, pause on the lock screen. Show it as paused,
       // so the play button works at once instead of the screen showing a player that plays nothing.
       this.set({ playing: false, waiting: false });
     }
   }
 
-  /** A safety net: the sentence played to its end but the end was never reported. */
+  /** Safety nets, checked every second while playing. */
   private checkStuck() {
     const p = this.player;
+    if (!p || !this.state.playing || this.state.waiting || this.silent || p.playing) return;
+    // A sentence that was loaded but never started: load it again.
+    if (!this.started) {
+      if (Date.now() - this.loadedAt > 3000) void this.playCurrent();
+      return;
+    }
+    // A sentence that played to its end, but the end was never reported: go on.
     const { key, time, duration } = this.progress;
-    if (!p || !this.state.playing || this.state.waiting || this.silent || !this.started || p.playing) return;
-    if (key && duration > 0 && time >= duration - 0.3 && Date.now() - this.lastStatusAt > 1500) this.advance();
-  }
-
-  /** The sentence after the current one, for preloading. */
-  private following(): Sentence | null {
-    const { chapter, sentence, project } = this.state;
-    const here = this.sentencesOf(chapter);
-    if (sentence + 1 < here.length) return here[sentence + 1];
-    return chapter + 1 < project.chapters.length ? (this.sentencesOf(chapter + 1)[0] ?? null) : null;
-  }
-
-  /** Loads the next sentence's file ahead, so it starts right after this one without a pause to open it. */
-  private preloadNext() {
-    const next = this.following();
-    const uri = next && hasAudio(next.key) ? audioFile(next.key).uri : null;
-    if (uri === this.preloaded) return;
-    if (this.preloaded) void clearPreloadedSource({ uri: this.preloaded }).catch(() => {});
-    this.preloaded = uri;
-    if (uri) void preload({ uri }).catch(() => {});
+    if (key && duration > 0 && time >= duration - 0.6 && Date.now() - this.lastStatusAt > 1500) this.advance();
   }
 
   private silenceUri(): string {
@@ -296,6 +285,7 @@ export class BookController {
     const s = this.sentencesOf(chapter)[sentence];
     if (!s || !playing || this.disposed) return;
     this.started = false;
+    this.loadedAt = Date.now();
     this.quietUntil = Date.now() + 500;
     player.setActiveForLockScreen(true, { title: project.chapters[chapter].title || `Kapitola ${chapter + 1}`, artist: project.title });
     if (!hasAudio(s.key)) {
@@ -315,13 +305,12 @@ export class BookController {
     this.silent = false;
     this.set({ waiting: false });
     this.setProgress({ key: s.key, time: 0, duration: 0 });
-    const uri = audioFile(s.key).uri;
-    if (uri === this.preloaded) this.preloaded = null; // replace() takes the preloaded copy
     player.loop = false;
-    player.replace({ uri });
+    // Never with expo-audio's preload(): iOS will not put an item another AVPlayer had into this player's queue,
+    // so the preloaded sentence silently never plays (build 8 stopped after every sentence).
+    player.replace({ uri: audioFile(s.key).uri });
     player.setPlaybackRate(rate, "high");
     player.play();
-    this.preloadNext();
   }
 
   play(chapter = this.state.chapter, sentence = this.state.sentence) {
@@ -371,7 +360,6 @@ export class BookController {
   dispose() {
     this.disposed = true;
     if (this.watchdog) clearInterval(this.watchdog);
-    if (this.preloaded) void clearPreloadedSource({ uri: this.preloaded }).catch(() => {});
     this.player?.setActiveForLockScreen(false);
     this.player?.remove();
     this.player = null;
