@@ -1,6 +1,7 @@
 // Turns positioned PDF text into chapters and paragraphs: lines from text runs, column order,
 // running headers/footers and page numbers removed, footnotes and table-of-contents lines dropped,
 // hyphenated line breaks joined. Pure functions; the PDF reader (pdf.js) lives in the platform layer.
+import { repairGlyphs } from "./glyphs.ts";
 
 /** A run of text as pdf.js reports it, in PDF units with y growing upwards. */
 export interface TextItem {
@@ -158,8 +159,11 @@ const isPageNumber = (s: string) => PAGE_NUMBER_BARE.test(s) || PAGE_NUMBER_WORD
 const TOC_LINE = /(?:\.{3,}|…{2,}|(?:\.\s){3,})\s*\d{1,4}$/;
 
 export function extractBook(pages: PdfPage[], outline: OutlineEntry[] = []): Book {
+  // Glyphs marked unknown by markUnknownGlyphs() (Safari PDFs): ligatures restored, unreadable words left out.
+  const glyphs = repairGlyphs(pages);
+  pages = glyphs.pages;
   const garbled = garbledFonts(pages);
-  const removed = { headers: 0, pageNumbers: 0, footnotes: 0, tocLines: 0, garbled: garbled.chars };
+  const removed = { headers: 0, pageNumbers: 0, footnotes: 0, tocLines: 0, garbled: garbled.chars + glyphs.dropped };
   if (garbled.fonts.size) pages = pages.map((p) => ({ ...p, items: p.items.filter((i) => !i.font || !garbled.fonts.has(i.font)) }));
   const perPage = pages.map(buildLines);
   const imageOnlyPages = pages.filter((p, i) => perPage[i].map((l) => l.text).join("").length < 20).map((p) => p.number);

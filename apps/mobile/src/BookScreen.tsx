@@ -1,6 +1,6 @@
 import { GARBLED_NOTE, type Voice } from "@audiokniha/core";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BookController, type BookState } from "./lib/book.ts";
 import { getProject } from "./lib/storage.ts";
@@ -30,22 +30,14 @@ function Book({ ctl, onBack }: { ctl: BookController; onBack: () => void }) {
   const c = useColors();
   const insets = useSafeAreaInsets();
   const st = useSyncExternalStore(ctl.subscribe, ctl.getState);
-  const [open, setOpen] = useState<number | null>(null);
   const [voices, setVoices] = useState(false);
   const [reading, setReading] = useState(false);
   const p = st.project;
   const ready = st.ready.reduce((a, b) => a + b, 0);
   const total = st.total.reduce((a, b) => a + b, 0);
-  const readAlong = reading && <ReadAlong ctl={ctl} st={st} onClose={() => setReading(false)} />;
-
-  if (open !== null) {
-    return (
-      <>
-        <ChapterText ctl={ctl} st={st} chapter={open} onBack={() => setOpen(null)} onOpenText={() => setReading(true)} />
-        {readAlong}
-      </>
-    );
-  }
+  const chapterTitle = (i: number) => p.chapters[i]?.title || `Kapitola ${i + 1}`;
+  const share = (i: number) => (i < st.chapter ? 1 : i > st.chapter ? 0 : Math.min(st.sentence + 1, st.total[i] ?? 0) / Math.max(1, st.total[i] ?? 0));
+  const started = st.chapter > 0 || st.sentence > 0 || st.playing;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
@@ -62,6 +54,20 @@ function Book({ ctl, onBack }: { ctl: BookController; onBack: () => void }) {
         </View>
 
         <Status st={st} c={c} onRetry={() => ctl.retry()} />
+
+        {/* Where the listening is: the chapter of how many, how far into it, and the way to its text. */}
+        <View style={[s.card, { backgroundColor: c.accentSoft }]}>
+          <Text style={{ color: c.accentText, fontSize: 13, fontWeight: "700" }}>
+            {started ? "POČÚVAŠ" : "ZAČNI TU"} · KAPITOLA {st.chapter + 1} Z {p.chapters.length}
+          </Text>
+          <Text style={{ color: c.ink, fontSize: 19, fontWeight: "700" }} numberOfLines={2}>{chapterTitle(st.chapter)}</Text>
+          <Bar value={share(st.chapter)} />
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <Button title={st.playing ? "Pozastaviť" : started ? "Pokračovať" : "Prehrať"} onPress={() => ctl.toggle()} style={{ flex: 1 }} />
+            <Button title="Zobraziť text" kind="secondary" onPress={() => setReading(true)} style={{ flex: 1 }} />
+          </View>
+        </View>
+
         {p.source?.imageOnlyPages.length ? <Note tone="warn">{p.source.imageOnlyPages.length} strán PDF je len naskenovaný obrázok, ich text v knihe chýba.</Note> : null}
         {p.source?.garbledChars ? <Note tone="warn">{GARBLED_NOTE}</Note> : null}
 
@@ -99,21 +105,40 @@ function Book({ ctl, onBack }: { ctl: BookController; onBack: () => void }) {
           </View>
         )}
 
-        <Text style={[s.h2, { color: c.ink }]}>Kapitoly</Text>
-        {p.chapters.map((ch, i) => (
-          <Pressable key={ch.id} onPress={() => setOpen(i)} style={({ pressed }) => [s.chapter, { borderColor: c.line, opacity: pressed ? 0.7 : 1 }]}>
-            <Text style={{ color: i === st.chapter ? c.accentText : c.ink2, width: 28, fontVariant: ["tabular-nums"] }}>{i + 1}</Text>
-            <Text style={{ flex: 1, color: i === st.chapter ? c.accentText : c.ink, fontSize: 16, fontWeight: "500" }} numberOfLines={2}>
-              {ch.title || `Kapitola ${i + 1}`}
-            </Text>
-            <Text style={{ color: st.ready[i] >= st.total[i] ? c.ok : c.ink2, fontSize: 13 }}>
-              {st.ready[i] >= st.total[i] ? "Pripravená" : st.ready[i] ? `${st.ready[i]} z ${st.total[i]} viet` : "Čaká"}
-            </Text>
-          </Pressable>
-        ))}
+        <View style={{ gap: 2 }}>
+          <Text style={[s.h2, { color: c.ink }]}>Kapitoly</Text>
+          <Text style={{ color: c.ink2, fontSize: 13 }}>Ťukni na kapitolu a počúvanie sa presunie na jej začiatok.</Text>
+        </View>
+        <View>
+          {p.chapters.map((ch, i) => {
+            const here = i === st.chapter;
+            return (
+              <Pressable
+                key={ch.id}
+                onPress={() => {
+                  if (!here) ctl.seek(i, 0);
+                  setReading(true);
+                }}
+                accessibilityState={{ selected: here }}
+                style={({ pressed }) => [s.chapter, { borderColor: c.line, backgroundColor: here ? c.accentSoft : "transparent", opacity: pressed ? 0.7 : 1 }]}
+              >
+                <Text style={{ color: here ? c.accentText : c.ink2, width: 30, fontVariant: ["tabular-nums"], fontWeight: here ? "700" : "400" }}>{i + 1}</Text>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={{ color: here ? c.accentText : i < st.chapter ? c.ink2 : c.ink, fontSize: 16, fontWeight: here ? "700" : "500" }} numberOfLines={2}>
+                    {chapterTitle(i)}
+                  </Text>
+                  {here && <Text style={{ color: c.accentText, fontSize: 13 }}>Tu si · veta {Math.min(st.sentence + 1, st.total[i])} z {st.total[i]}</Text>}
+                </View>
+                <Text style={{ color: st.ready[i] >= st.total[i] ? c.ok : c.ink2, fontSize: 13 }}>
+                  {st.ready[i] >= st.total[i] ? "Pripravená" : st.ready[i] ? `${st.ready[i]} z ${st.total[i]} viet` : "Čaká"}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </ScrollView>
       <PlayerBar ctl={ctl} st={st} onOpenText={() => setReading(true)} />
-      {readAlong}
+      {reading && <ReadAlong ctl={ctl} st={st} onClose={() => setReading(false)} />}
     </View>
   );
 }
@@ -141,48 +166,11 @@ function Status({ st, c, onRetry }: { st: BookState; c: Colors; onRetry: () => v
   return null;
 }
 
-function ChapterText({ ctl, st, chapter, onBack, onOpenText }: { ctl: BookController; st: BookState; chapter: number; onBack: () => void; onOpenText: () => void }) {
-  const c = useColors();
-  const insets = useSafeAreaInsets();
-  // Rebuilt when the project changes (a seed, the voice); ready flags come with each state change.
-  const sentences = useMemo(() => ctl.sentencesOf(chapter), [ctl, chapter, st.project]);
-  const title = st.project.chapters[chapter].title || `Kapitola ${chapter + 1}`;
-  return (
-    <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
-      <FlatList
-        data={sentences}
-        keyExtractor={(x) => String(x.index)}
-        contentContainerStyle={{ padding: 20, paddingBottom: 140, gap: 4 }}
-        ListHeaderComponent={
-          <View style={{ gap: 10, marginBottom: 10 }}>
-            <Button title="‹ Kapitoly" kind="quiet" onPress={onBack} style={{ alignSelf: "flex-start", paddingHorizontal: 0 }} />
-            <Text style={[s.h1, { color: c.ink }]}>{title}</Text>
-            <Text style={{ color: c.ink2, fontSize: 14, lineHeight: 20 }}>Takto hlas kapitolu prečíta. Ťukni na vetu a začne sa prehrávať. Ak nejaká znie zle, vygeneruj ju znova.</Text>
-          </View>
-        }
-        renderItem={({ item }) => {
-          const now = st.chapter === chapter && st.sentence === item.index;
-          return (
-            <Pressable onPress={() => ctl.play(chapter, item.index)} style={[s.sentence, { backgroundColor: now ? c.accentSoft : "transparent" }]}>
-              <Text style={{ flex: 1, color: c.ink, fontSize: 17, lineHeight: 25 }}>{item.text}</Text>
-              <Pressable accessibilityLabel="Vygenerovať túto vetu znova" hitSlop={8} onPress={() => ctl.regenerate(chapter, item)} style={[s.again, { borderColor: c.line }]}>
-                <Text style={{ color: c.ink2, fontSize: 13 }}>Znova</Text>
-              </Pressable>
-            </Pressable>
-          );
-        }}
-      />
-      <PlayerBar ctl={ctl} st={st} onOpenText={onOpenText} />
-    </View>
-  );
-}
-
 const s = StyleSheet.create({
   h1: { fontSize: 26, fontWeight: "800", letterSpacing: -0.4 },
   h2: { fontSize: 20, fontWeight: "700" },
   card: { borderRadius: 16, padding: 16, gap: 12 },
   chip: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, height: 40, justifyContent: "center" },
-  chapter: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 52, borderBottomWidth: StyleSheet.hairlineWidth },
-  sentence: { flexDirection: "row", gap: 10, alignItems: "flex-start", padding: 10, borderRadius: 10 },
-  again: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, marginTop: 2 },
+  // Padded and pulled back out, so the current chapter's tint has room while the text stays in line.
+  chapter: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 52, paddingVertical: 8, paddingHorizontal: 10, marginHorizontal: -10, borderBottomWidth: StyleSheet.hairlineWidth },
 });

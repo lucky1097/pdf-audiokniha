@@ -24,14 +24,14 @@ export function PlayerBar({ ctl, st, onOpenText }: { ctl: BookController; st: Bo
           <View style={{ flex: 1 }}>
             <Text style={{ color: c.ink, fontWeight: "600", fontSize: 15 }} numberOfLines={1}>{ch?.title || `Kapitola ${st.chapter + 1}`}</Text>
             <Text style={{ color: c.ink2, fontSize: 13 }} numberOfLines={1}>
-              {st.waiting ? "Pripravujem hlas…" : `Veta ${Math.min(st.sentence + 1, total)} z ${total}`}
-              {st.rtf ? ` · ${st.rtf < 1 ? "stíha" : "nestíha"} (${st.rtf.toFixed(2)}×)` : ""}
+              {st.waiting ? "Pripravujem hlas…" : `Kapitola ${st.chapter + 1} z ${st.project.chapters.length} · veta ${Math.min(st.sentence + 1, total)} z ${total}`}
+              {st.rtf && st.rtf >= 1 ? " · hlas nestíha" : ""}
             </Text>
           </View>
         </Pressable>
         {onOpenText && (
-          <Pressable accessibilityLabel="Text, ktorý sa práve číta" onPress={onOpenText} style={[s.pill, { borderColor: c.line }]}>
-            <Text style={{ color: c.ink, fontWeight: "600" }}>Text</Text>
+          <Pressable accessibilityLabel="Text, ktorý sa práve číta" onPress={onOpenText} style={[s.pill, { borderColor: c.accentSoft, backgroundColor: c.accentSoft }]}>
+            <Text style={{ color: c.accentText, fontWeight: "700" }}>Text</Text>
           </Pressable>
         )}
         <Pressable accessibilityLabel="Rýchlosť" onPress={() => ctl.cycleRate()} style={[s.pill, { borderColor: c.line }]}>

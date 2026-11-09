@@ -36,7 +36,7 @@ export interface Project {
 
 /** Shown on a book whose PDF had fonts with a broken character map (Book.removed.garbled). */
 export const GARBLED_NOTE =
-  "Časť textu je v tomto PDF uložená poškodene, dá sa prečítať len ako symboly (stáva sa to napríklad pri PDF uloženom cez Safari), preto ju kniha vynecháva. Pôvodné PDF to zvyčajne nemá.";
+  "Toto PDF má časť písmen uloženú poškodene (stáva sa to pri PDF uloženom cez Safari). Ligatúry ako fi a fl appka opravila. Čísla a skratky v ozdobnom písme sa obnoviť nedajú, preto ich kniha vynecháva. Pôvodné PDF to zvyčajne nemá.";
 
 export const MODEL_ID = "supertonic-3-fp32";
 export const SENTENCE_GAP = 0.35;

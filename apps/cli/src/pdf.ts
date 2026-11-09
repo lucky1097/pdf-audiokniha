@@ -1,10 +1,11 @@
 import { readFile } from "node:fs/promises";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
-import type { OutlineEntry, PdfPage } from "@audiokniha/core";
+import { markUnknownGlyphs, type OutlineEntry, type PdfPage } from "@audiokniha/core";
 
 /** Read a PDF into positioned text runs (pdf.js) plus its outline, for core's extractBook(). */
 export async function readPdf(path: string): Promise<{ pages: PdfPage[]; outline: OutlineEntry[]; title: string }> {
-  const data = new Uint8Array(await readFile(path));
+  // Safari-made PDFs: glyphs with a broken character map are marked, so core can restore or leave them out.
+  const { data } = await markUnknownGlyphs(new Uint8Array(await readFile(path)));
   const task = getDocument({ data, useSystemFonts: false, verbosity: 0 });
   const doc = await task.promise;
   const pages: PdfPage[] = [];

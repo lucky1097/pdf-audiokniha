@@ -221,6 +221,18 @@ Každá fáza končí niečím, čo sa dá vyskúšať. Najprv funkčnosť, poto
 - **Overené bez iPhonu:** typecheck a Metro bundle pre iOS (Hermes). Na zariadení zatiaľ nič. Postup inštalácie je v `apps/mobile/README.md` (EAS development build + server cez Wi‑Fi).
 - **Ďalej:** výkon na iPhone (RTF, prípadne CoreML), export .m4b, slovník, TestFlight.
 
+**Stav 2026-11-09:** appka beží z TestFlightu na iPhone. Hlas stíha s RTF ~0,28.
+- **Čítanie s textom** (`ReadAlong.tsx`):
+  - Kapitola veľkým písmom, zvýraznená veta a v nej odhadom aj slovo (`core/words.ts`).
+  - Zoznam kapitol a tlačidlo „Ďalšia kapitola“.
+  - Ťuknutie na vetu: čítať odtiaľ. Podržanie: vygenerovať znova.
+  - Stránka knihy má kartu „Počúvaš“ a ťuknutie na kapitolu presunie počúvanie.
+- **PDF zo Safari (Quartz):** chybné ToUnicode mapy.
+  - `core/pdf/tounicode.ts` označí pokazené glyfy prírastkovou aktualizáciou PDF.
+  - `core/pdf/glyphs.ts` doplní ligatúry podľa štatistiky trojíc písmen (`tools/build-letter-stats.mjs`).
+  - Čísla v starom štýle a kapitálky sa obnoviť nedajú, preto sa vynechajú.
+- **Promo web:** riadok „iPhone appka: čoskoro v App Store“. Po zverejnení stačí doplniť `APP_STORE_URL` v `apps/site/index.html`.
+
 ### Fáza 6: rozšírenia
 
 - OCR pre naskenované PDF a EPUB.

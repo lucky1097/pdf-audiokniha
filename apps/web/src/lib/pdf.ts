@@ -1,4 +1,4 @@
-import { extractBook, type Book, type OutlineEntry, type PdfPage } from "@audiokniha/core";
+import { extractBook, markUnknownGlyphs, type Book, type OutlineEntry, type PdfPage } from "@audiokniha/core";
 // The legacy build: the default one assumes the newest browser features (Map.getOrInsertComputed,
 // Math.sumPrecise…) that Safari on the iPhone does not have yet; legacy ships polyfills for them.
 import { GlobalWorkerOptions, getDocument, type PDFPageProxy } from "pdfjs-dist/legacy/build/pdf.mjs";
@@ -43,7 +43,10 @@ export async function importPdf(file: File, onPage?: (n: number, total: number) 
   diag(`pdf: ${file.name}, ${Math.round(file.size / 1024)} KB, stream iterator on page ${nativeStreamIterator ? "native" : "polyfill"}`);
   ensureWorker();
   // Warnings on: they go to the diagnostics log (font and outline problems show up there).
-  const task = getDocument({ data: new Uint8Array(await file.arrayBuffer()), verbosity: 1 });
+  // Safari-made PDFs: glyphs with a broken character map are marked, so core can restore or leave them out.
+  const marked = await markUnknownGlyphs(new Uint8Array(await file.arrayBuffer()));
+  if (marked.fonts) diag(`pdf: broken character maps in ${marked.fonts} fonts marked`);
+  const task = getDocument({ data: marked.data, verbosity: 1 });
   const doc = await task.promise;
   try {
     const pages: PdfPage[] = [];

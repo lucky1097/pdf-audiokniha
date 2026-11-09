@@ -1,9 +1,13 @@
 export { normalize, normalizeToText, spokenText, NORMALIZER_VERSION } from "./normalize/index.ts";
 export type { Lang, Span, SpanKind, NormalizeOptions } from "./normalize/index.ts";
 export { segment } from "./segment.ts";
+export { wordAt, wordSpans } from "./words.ts";
+export type { WordSpan } from "./words.ts";
 export { detectLang } from "./detect-lang.ts";
 export type { Segment, SegmentOptions } from "./segment.ts";
 export { buildLines, extractBook, garbledFonts } from "./pdf/layout.ts";
+export { markUnknownGlyphs } from "./pdf/tounicode.ts";
+export { repairGlyphs } from "./pdf/glyphs.ts";
 export type { Book, Chapter, Line, OutlineEntry, PdfPage, TextItem } from "./pdf/layout.ts";
 export {
   GARBLED_NOTE,

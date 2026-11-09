@@ -4,7 +4,7 @@ import { extractBook, type Book, type OutlineEntry, type PdfPage } from "@audiok
 import { useEffect, useRef, type ComponentType, type Ref } from "react";
 import { View } from "react-native";
 import { WebView as RNWebView } from "react-native-webview";
-import { PDFJS_LIB, PDFJS_WORKER } from "./generated/pdfjs.ts";
+import { GLYPHS, PDFJS_LIB, PDFJS_WORKER } from "./generated/pdfjs.ts";
 
 // react-native-webview 14's platform typings resolve to `never` props against React Native 0.88's types;
 // the props used here are typed by hand (the runtime component is unchanged).
@@ -66,7 +66,9 @@ window.__read = async function (b64) {
     const bin = atob(b64);
     const data = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) data[i] = bin.charCodeAt(i);
-    const task = pdfjs.getDocument({ data, verbosity: 0 });
+    // Safari-made PDFs: glyphs with a broken character map are marked, so core can restore or leave them out.
+    const marked = await AudioknihaGlyphs.markUnknownGlyphs(data);
+    const task = pdfjs.getDocument({ data: marked.data, verbosity: 0 });
     const doc = await task.promise;
     const pages = [];
     for (let n = 1; n <= doc.numPages; n++) {
@@ -107,7 +109,7 @@ window.__read = async function (b64) {
 true;
 `;
 
-const SETUP = `window.__PDFJS_LIB = ${JSON.stringify(PDFJS_LIB)};\nwindow.__PDFJS_WORKER = ${JSON.stringify(PDFJS_WORKER)};\nwindow.__STREAM_ITERATOR = ${JSON.stringify(STREAM_ITERATOR)};\n${READER}`;
+const SETUP = `window.__PDFJS_LIB = ${JSON.stringify(PDFJS_LIB)};\nwindow.__PDFJS_WORKER = ${JSON.stringify(PDFJS_WORKER)};\nwindow.__STREAM_ITERATOR = ${JSON.stringify(STREAM_ITERATOR)};\n${GLYPHS}\n${READER}`;
 
 interface Props {
   /** The PDF as base64; a new value starts a new read. */

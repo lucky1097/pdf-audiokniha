@@ -184,7 +184,48 @@
   .ak-export { display: grid; gap: 8px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; font-size: 14px; }
   .ak-export b { font-size: 15px; }
   .ak-export div { display: flex; justify-content: space-between; color: #4b5563; border-top: 1px solid #e5e7eb; padding-top: 8px; font-variant-numeric: tabular-nums; }
+
+  /* the iPhone app: a quiet line until it is in the App Store, then a link (APP_STORE_URL in the script below) */
+  .store-row { margin-top: var(--s-4, 16px); }
+  .store-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid #e5e7eb; border-radius: 999px; font-size: var(--t-small); color: var(--muted); }
+  a.store-pill { color: var(--ink); text-decoration: none; transition: border-color .2s, transform .2s; }
+  a.store-pill:hover { border-color: currentColor; transform: translateY(-1px); }
+  .closing__cta .store-row { text-align: center; }
+  .footer--statement .store-pill { border-color: rgba(255, 255, 255, .2); color: inherit; }
+  .ios-note { margin-top: 12px; max-width: 46ch; }
+  /* a phone: the line fits under the buttons without pushing the player out of the first screen */
+  @media (max-width: 639px) {
+    .hero .store-row, .hero .ios-note { margin-top: 8px; }
+    .store-pill { padding: 6px 12px; }
+    .hero__media.ak { padding: 12px 24px; min-height: 0; }
+    .hero .ak-meta { display: none; }
+  }
 </style>
+<script>
+  // The iPhone app's App Store page. Empty until it is published: the lines then say "čoskoro" (soon).
+  const APP_STORE_URL = "";
+  document.addEventListener("DOMContentLoaded", () => {
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (APP_STORE_URL) {
+      for (const el of document.querySelectorAll("[data-appstore]")) {
+        const a = document.createElement("a");
+        a.className = el.className;
+        a.href = APP_STORE_URL;
+        a.innerHTML = el.innerHTML;
+        a.lastElementChild.textContent = el.closest(".footer__col") ? "iPhone (App Store)" : "Stiahnuť appku pre iPhone";
+        el.replaceWith(a);
+      }
+      // On an iPhone the app is the way in: the browser's memory is too tight for the voice.
+      if (ios) for (const a of document.querySelectorAll("a[data-try]")) { a.href = APP_STORE_URL; a.firstChild.textContent = "Stiahnuť pre iPhone"; }
+    } else if (ios) {
+      // The note says it already: it takes the place of the hero's "soon" line.
+      for (const p of document.querySelectorAll(".ios-note")) {
+        p.hidden = false;
+        p.previousElementSibling?.classList.contains("store-row") && (p.previousElementSibling.hidden = true);
+      }
+    }
+  });
+</script>
 </head>
 <body>
 <!-- type: software
@@ -218,7 +259,9 @@
       <div class="hero__text span-5">
         <h1 id="hero-h">Audiokniha z PDF priamo v prehliadači</h1>
         <p class="hero__lead">Nahraj PDF alebo text a o pár minút počúvaš. Hlas vzniká vo tvojom počítači, takže kniha nikam neodchádza. Po slovensky aj po anglicky, zadarmo. V Chrome alebo Edge trvá hodina knihy asi 5 minút.</p>
-        <div class="btn-row"><a class="btn btn--primary" href="app/">Vyskúšať v prehliadači<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a><a class="btn btn--secondary" href="#ukazky">Vypočuť ukážky</a></div>
+        <div class="btn-row"><a class="btn btn--primary" href="app/" data-try>Vyskúšať v prehliadači<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a><a class="btn btn--secondary" href="#ukazky">Vypočuť ukážky</a></div>
+        <p class="store-row"><span class="store-pill" data-appstore><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 18h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>iPhone appka: čoskoro v App Store</span></span></p>
+        <p class="t-small muted ios-note" hidden>Na iPhone pripravujeme appku pre App Store. V Safari sa hlas do pamäte telefónu nemusí zmestiť.</p>
       </div>
       <div class="hero__media span-6 start-7 ak" role="img" aria-label="Prehrávač appky Audiokniha: kniha Návrat do mesta, kapitola Dom na konci ulice">
         <div class="ak-player" aria-hidden="true">
@@ -401,7 +444,8 @@
         <h2 id="close-h">Vypočuj si svoje PDF ešte dnes</h2>
         <p class="t-small muted">Zadarmo a bez účtu. Najrýchlejšie v Chrome alebo Edge.</p>
       </div>
-      <a class="btn btn--primary btn--xl btn--wide" href="app/">Vyskúšať v prehliadači<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+      <a class="btn btn--primary btn--xl btn--wide" href="app/" data-try>Vyskúšať v prehliadači<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+      <p class="store-row"><span class="store-pill" data-appstore><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 18h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>iPhone appka: čoskoro v App Store</span></span></p>
     </div>
     <div class="closing__links">
       <div class="grid">
@@ -409,7 +453,7 @@
           <a class="nav__logo" href="#top"><span class="mark" data-mark="ring" aria-hidden="true"></span>Audiokniha</a>
           <p class="footer__lede">Z PDF audiokniha, s hlasom priamo v tvojom zariadení.</p>
         </div>
-        <div class="span-2 footer__col"><h3>Appka</h3><ul><li><a href="app/">Otvoriť appku</a></li><li><a href="#editor">Editor</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Appka</h3><ul><li><a href="app/">Otvoriť appku</a></li><li><a href="#editor">Editor</a></li><li><span data-appstore><span>iPhone: čoskoro</span></span></li></ul></div>
         <div class="span-2 footer__col"><h3>Hlas</h3><ul><li><a href="#ukazky">Ukážky</a></li><li><a href="#sukromie">Súkromie</a></li></ul></div>
         <div class="span-2 footer__col"><h3>Pomoc</h3><ul><li><a href="#ako">Ako to funguje</a></li><li><a href="#faq">Otázky</a></li></ul></div>
         <div class="span-2 footer__col"><h3>Licencie</h3><ul><li>Kód: MIT</li><li>Hlas: Supertonic 3, OpenRAIL-M</li></ul></div>

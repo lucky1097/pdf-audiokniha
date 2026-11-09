@@ -32,6 +32,14 @@ export interface BookState {
 
 type Listener = () => void;
 
+/** Where the player is inside the sentence being played. Its own subscription: it changes ten times a second. */
+export interface Progress {
+  /** The sentence's cache key, so a status from the previous sentence is never taken for this one. */
+  key: string;
+  time: number;
+  duration: number;
+}
+
 export class BookController {
   private state: BookState;
   private listeners = new Set<Listener>();
@@ -39,6 +47,8 @@ export class BookController {
   private player: AudioPlayer | null = null;
   private pumping = false;
   private disposed = false;
+  private progress: Progress = { key: "", time: 0, duration: 0 };
+  private progressListeners = new Set<Listener>();
 
   constructor(project: Project) {
     const { chapter, segment } = project.position;
@@ -65,6 +75,17 @@ export class BookController {
     return () => void this.listeners.delete(l);
   };
   getState = () => this.state;
+
+  subscribeProgress = (l: Listener) => {
+    this.progressListeners.add(l);
+    return () => void this.progressListeners.delete(l);
+  };
+  getProgress = () => this.progress;
+
+  private setProgress(p: Progress) {
+    this.progress = p;
+    for (const l of this.progressListeners) l();
+  }
 
   private set(patch: Partial<BookState>) {
     this.state = { ...this.state, ...patch };
@@ -172,8 +193,12 @@ export class BookController {
   private async ensurePlayer(): Promise<AudioPlayer> {
     if (this.player) return this.player;
     await setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: "doNotMix" });
-    const player = createAudioPlayer(null);
+    // Ten updates a second: enough to follow the voice word by word in the read-along view.
+    const player = createAudioPlayer(null, { updateInterval: 100 });
     player.addListener("playbackStatusUpdate", (st) => {
+      if (this.progress.key && st.isLoaded && st.duration > 0 && (st.currentTime !== this.progress.time || st.duration !== this.progress.duration)) {
+        this.setProgress({ key: this.progress.key, time: st.currentTime, duration: st.duration });
+      }
       if (st.didJustFinish && this.state.playing) this.advance();
     });
     this.player = player;
@@ -185,6 +210,12 @@ export class BookController {
     if (sentence + 1 < this.sentencesOf(chapter).length) this.go(chapter, sentence + 1);
     else if (chapter + 1 < project.chapters.length) this.go(chapter + 1, 0);
     else this.set({ playing: false });
+  }
+
+  /** Moves the listening position; keeps playing if it was. */
+  seek(chapter: number, sentence = 0) {
+    if (chapter === this.state.chapter && sentence === this.state.sentence) return;
+    this.go(chapter, sentence);
   }
 
   private go(chapter: number, sentence: number) {
@@ -207,6 +238,7 @@ export class BookController {
       return;
     }
     this.set({ waiting: false });
+    this.setProgress({ key: s.key, time: 0, duration: 0 });
     player.replace({ uri: audioFile(s.key).uri });
     player.setPlaybackRate(rate, "high");
     player.play();
@@ -251,5 +283,6 @@ export class BookController {
     this.player?.remove();
     this.player = null;
     this.listeners.clear();
+    this.progressListeners.clear();
   }
 }
