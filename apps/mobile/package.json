@@ -5,7 +5,6 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start --dev-client",
-    "postinstall": "node scripts/embed-pdfjs.mjs",
     "typecheck": "tsc --noEmit -p .",
     "bundle:ios": "expo export --platform ios --output-dir .expo-export"
   },
