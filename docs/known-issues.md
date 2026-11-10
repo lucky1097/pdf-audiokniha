@@ -6,9 +6,12 @@
 - The highlighted word is an estimate from letter counts and pauses, not real timing.
 - Books generated before 2026-11-10 keep their .wav sentences (large) until "Zmazať zvuk"; there is no conversion pass.
 - The .m4b export reads the whole joined file into JS memory (about 3x its size at the peak).
+- A sentence whose generation always fails stops the queue at that sentence on every retry (no skip).
 - The web app on iPhone Safari crashes loading the fp32 model; the iPhone app is the supported way.
 
 ## Gotchas
+- BookController.estimate() checks one file per sentence: call it in a useMemo keyed on the ready count, never per render or per row.
+- A cached export must be keyed by the sentence keys (ctl.keys()), not by counts: voice, language and seed change the audio.
 - Agents in .claude/agents load only in a session whose working folder is this repo. From another folder, give a
   general-purpose subagent (model haiku) the agent file to read as its instructions.
 - `tsc file.ts` on the command line needs `--ignoreConfig` here (TS 7 refuses to ignore the root tsconfig.json silently).

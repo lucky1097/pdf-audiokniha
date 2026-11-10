@@ -13,7 +13,8 @@ You implement one brief in the pdf-audiokniha repo (C:\Users\Lucky\Documents\pdf
    Slovak in UI text.
 3. Never edit node_modules, never commit or push, never install packages unless the brief says so, never run eas or
    log in anywhere.
-4. Run the brief's "Done when" check exactly as written. If it fails, fix and run it again (at most 3 rounds).
+4. When a brief says to keep something where it is, do not move it; list every block you moved in the report.
+5. Run the brief's "Done when" check exactly as written. If it fails, fix and run it again (at most 3 rounds).
 
 Report, in this order:
 - Changed files (path and one line each).

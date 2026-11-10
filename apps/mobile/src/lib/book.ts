@@ -8,6 +8,8 @@ import { NO_VOICE_MESSAGE, downloadModel, loadEngine, modelDownloaded, synthesiz
 import { audioBytes, audioFile, deleteBookAudio, hasAudio, listProjects, saveProject, writeAudio, writeRawWav } from "./storage.ts";
 
 const AHEAD = 6;
+/** Before anything was generated: about 0.28 real-time factor at ~14 characters of speech a second (measured on iPhone). */
+const DEFAULT_SECONDS_PER_CHAR = 0.02;
 export const RATES = [1, 1.25, 1.5, 2, 0.75] as const;
 
 export type Phase = "idle" | "downloading" | "loading" | "generating" | "error";
@@ -28,6 +30,8 @@ export interface BookState {
   total: number[];
   /** Real-time factor of the last sentence (generation time / audio time). */
   rtf: number | null;
+  /** Running average of generation seconds per character of sentence text; drives estimate(). */
+  secondsPerChar: number;
 }
 
 type Listener = () => void;
@@ -60,6 +64,13 @@ export class BookController {
   private disposed = false;
   private progress: Progress = { key: "", time: 0, duration: 0 };
   private progressListeners = new Set<Listener>();
+  /** A sentence was measured this session, so the next measurement is averaged in rather than replacing the default. */
+  private measured = false;
+  private sentencesSinceSave = 0;
+  /** Set by deleteAudio(): the pump writes nothing more and starts nothing new until the files are gone. */
+  private halted = false;
+  /** The running pump, so deleteAudio() can wait for the sentence in flight before it deletes files. */
+  private pumpDone: Promise<void> | null = null;
 
   constructor(project: Project) {
     const { chapter, segment } = project.position;
@@ -76,9 +87,14 @@ export class BookController {
       ready: [],
       total: [],
       rtf: null,
+      secondsPerChar: project.secondsPerChar ?? DEFAULT_SECONDS_PER_CHAR,
     };
     this.recount();
-    if (project.generating) void this.pump();
+    // A queued chapter that is already complete leaves the queue (its audio may have been made before the queue ended).
+    const queued = project.queued ?? [];
+    const open = queued.filter((c) => this.state.ready[c] < this.state.total[c]);
+    if (open.length !== queued.length) this.saveWithout({ queued: open });
+    if (this.state.project.generating || open.length) void this.pump();
   }
 
   subscribe = (l: Listener) => {
@@ -133,9 +149,12 @@ export class BookController {
   // ------------------------------------------------------------------ generation
 
   private nextJob(): { chapter: number; s: Sentence } | null {
+    if (this.halted) return null;
     const { chapter, sentence, project } = this.state;
     const here = this.sentencesOf(chapter);
     for (const s of here.slice(sentence, sentence + AHEAD)) if (!hasAudio(s.key)) return { chapter, s };
+    // Chapters the user asked for one by one, in the order asked.
+    for (const c of project.queued ?? []) for (const s of this.sentencesOf(c)) if (!hasAudio(s.key)) return { chapter: c, s };
     if (!project.generating) return null;
     // The whole book: from the current chapter to the end, then from the start.
     const order = [...project.chapters.keys()].map((i) => (chapter + i) % project.chapters.length);
@@ -155,32 +174,68 @@ export class BookController {
     await loadEngine();
   }
 
-  private async pump() {
+  private pump() {
     if (this.pumping || this.disposed) return;
     if (!this.nextJob()) return;
     this.pumping = true;
+    this.pumpDone = this.run();
+  }
+
+  private async run() {
     try {
       await this.ensureModel();
       this.set({ phase: "generating", error: null });
-      if (this.state.project.generating) await activateKeepAwakeAsync("generate").catch(() => {});
+      let awake = false;
       for (let job = this.nextJob(); job && !this.disposed; job = this.nextJob()) {
         const p = this.state.project;
+        // Checked per sentence: "Vytvoriť audioknihu" may be pressed while the pump already runs for the next sentences.
+        if (!awake && (p.generating || p.queued?.length)) {
+          awake = true;
+          await activateKeepAwakeAsync("generate").catch(() => {});
+        }
         const t0 = Date.now();
         const { pcm, sampleRate } = await synthesize(job.s.text, p.lang, p.voice, p.steps, job.s.seed);
+        // Deleted while this sentence was being made: its audio is dropped, not written after the delete.
+        if (this.halted) break;
         await writeAudio(job.s.key, wavBytes(pcm, sampleRate, job.s.paragraphEnd ? PARAGRAPH_GAP : SENTENCE_GAP));
+        const seconds = (Date.now() - t0) / 1000;
         const ready = [...this.state.ready];
         ready[job.chapter] += 1;
-        this.set({ ready, rtf: (Date.now() - t0) / 1000 / (pcm.length / sampleRate) });
+        const perChar = seconds / Math.max(1, job.s.text.length);
+        const secondsPerChar = this.measured ? 0.8 * this.state.secondsPerChar + 0.2 * perChar : perChar;
+        this.measured = true;
+        this.set({ ready, rtf: seconds / (pcm.length / sampleRate), secondsPerChar });
         if (this.state.waiting) void this.playCurrent();
+        // A queued chapter that is now complete leaves the queue.
+        const queue = this.state.project.queued ?? [];
+        if (queue.includes(job.chapter) && ready[job.chapter] >= this.state.total[job.chapter]) {
+          this.saveWithout({ queued: queue.filter((c) => c !== job.chapter) });
+        }
+        if (++this.sentencesSinceSave >= 20) this.persistRate();
       }
       if (this.state.project.generating && !this.nextJob()) this.update({ generating: false });
       this.set({ phase: "idle" });
     } catch (e) {
       this.set({ phase: "error", error: e instanceof Error ? e.message : String(e) });
     } finally {
+      if (this.sentencesSinceSave) this.persistRate();
       deactivateKeepAwake("generate");
       this.pumping = false;
+      this.pumpDone = null;
     }
+  }
+
+  /** Saves a change without starting the queue (update() would). */
+  private saveWithout(patch: Partial<Project>) {
+    const project = { ...this.state.project, ...patch, updated: Date.now() };
+    saveProject(project);
+    this.set({ project });
+  }
+
+  /** The measured speed is kept for the next session; saved every 20 sentences and when the pump ends. */
+  private persistRate() {
+    this.sentencesSinceSave = 0;
+    this.saveWithout({ secondsPerChar: this.state.secondsPerChar });
   }
 
   /** Retries after an error (a failed download resumes with the files already saved). */
@@ -197,6 +252,29 @@ export class BookController {
   regenerate(chapter: number, s: Sentence) {
     this.update({ seeds: { ...this.state.project.seeds, [s.base]: s.seed + 1 } });
     if (chapter === this.state.chapter && s.index === this.state.sentence && this.state.playing) void this.playCurrent();
+  }
+
+  /** Asks for one chapter to be prepared for offline listening. */
+  prepareChapter(c: number) {
+    const queued = this.state.project.queued ?? [];
+    if (queued.includes(c) || this.state.ready[c] >= this.state.total[c]) return;
+    this.update({ queued: [...queued, c] });
+  }
+
+  cancelChapter(c: number) {
+    this.saveWithout({ queued: (this.state.project.queued ?? []).filter((x) => x !== c) });
+  }
+
+  isQueued(c: number): boolean {
+    return (this.state.project.queued ?? []).includes(c);
+  }
+
+  /** Seconds to generate the sentences without audio in these chapters, at the measured speed. */
+  estimate(chapters: number[] | "all"): number {
+    const list = chapters === "all" ? this.state.project.chapters.map((_, i) => i) : chapters;
+    let chars = 0;
+    for (const c of list) for (const s of this.sentencesOf(c)) if (!hasAudio(s.key)) chars += s.text.length;
+    return chars * this.state.secondsPerChar;
   }
 
   // ------------------------------------------------------------------ player
@@ -269,15 +347,18 @@ export class BookController {
   /** Frees the audio; the text and the bookmark stay. Sentences another saved book shares are kept. */
   async deleteAudio(): Promise<void> {
     this.pause();
-    // Off before the files go, without starting the queue (update() would): it would make the sentences ahead again.
-    if (this.state.project.generating) {
-      const project = { ...this.state.project, generating: false, updated: Date.now() };
-      saveProject(project);
-      this.set({ project });
+    this.halted = true;
+    try {
+      // Off before the files go, without starting the queue (update() would): it would make the sentences ahead again.
+      if (this.state.project.generating || this.state.project.queued?.length) this.saveWithout({ generating: false, queued: [] });
+      // Wait for the queue to stop: halted makes it drop the sentence in flight, so nothing is written after the delete.
+      await this.pumpDone;
+      const others = await listProjects();
+      deleteBookAudio(this.state.project, others);
+      this.recount();
+    } finally {
+      this.halted = false;
     }
-    const others = await listProjects();
-    deleteBookAudio(this.state.project, others);
-    this.recount();
   }
 
   private advance() {

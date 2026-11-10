@@ -28,6 +28,10 @@ export interface Project {
   position: { chapter: number; segment: number };
   /** True while the user wants the whole book generated; generation resumes after a reload. */
   generating: boolean;
+  /** Chapters the user asked to prepare for offline listening (mobile), in the order asked. */
+  queued?: number[];
+  /** Measured generation seconds per character of sentence text, kept between sessions (mobile). */
+  secondsPerChar?: number;
   /** garbledChars: characters left out because their font's character map in the PDF is broken. */
   source?: { file: string; pages: number; imageOnlyPages: number[]; garbledChars?: number };
   created: number;

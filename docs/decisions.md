@@ -2,6 +2,11 @@
 
 Newest first. Each: date, decision, why.
 
+- 2026-11-10 Book screen: "Vytvoriť audioknihu" means prepare the whole book (the user's words); sharing is a separate
+  button next to the title. Tapping a chapter plays it and flows on into the next. Per-chapter offline preparation
+  is a queue (project.queued) between the sentences ahead and the whole book.
+- 2026-11-10 Time estimates use generation seconds per character, measured and saved per book (default 0.02 s).
+- 2026-11-10 No icon library: the share icon is drawn with Views (ui.tsx ShareIcon).
 - 2026-11-10 AAC on the iPhone is encoded natively (local Expo module, AVAudioFile), not in the WebView: WKWebView JS is
   suspended with the screen locked while generation keeps running, and some Safari 26.x builds write a wrong AAC
   decoder config into MP4.

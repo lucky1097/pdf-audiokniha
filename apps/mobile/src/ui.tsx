@@ -58,6 +58,65 @@ export function Note({ children, tone = "plain" }: { children: ReactNode; tone?:
   );
 }
 
+/** The iOS share symbol: an open box with an arrow coming out of its top. Plain Views, so no SVG dependency. */
+export function ShareIcon({ size = 20, color }: { size?: number; color: string }) {
+  const w = 2; // stroke width
+  const boxTop = size * 0.45;
+  const tip = size * 0.08; // top of the arrow
+  const stemH = size * 0.5 - tip;
+  const armLen = size * 0.3; // length of each chevron bar
+  const arm = armLen * Math.SQRT1_2; // how far one bar drops from the tip
+  const armMidX = arm / 2;
+  const armMidY = tip + arm / 2;
+  const cx = size / 2;
+  return (
+    <View style={{ width: size, height: size }} accessibilityElementsHidden>
+      {/* box: left, right and bottom walls, open at the top */}
+      <View
+        style={{
+          position: "absolute",
+          left: size * 0.2,
+          top: boxTop,
+          width: size * 0.6,
+          height: size - boxTop,
+          borderWidth: w,
+          borderTopWidth: 0,
+          borderColor: color,
+          borderBottomLeftRadius: size * 0.12,
+          borderBottomRightRadius: size * 0.12,
+        }}
+      />
+      {/* stem */}
+      <View style={{ position: "absolute", left: cx - w / 2, top: tip, width: w, height: stemH, backgroundColor: color }} />
+      {/* arrow head: two bars, one at -45 and one at +45 degrees */}
+      <View
+        style={{
+          position: "absolute",
+          left: cx - armMidX - armLen / 2,
+          top: armMidY - w / 2,
+          width: armLen,
+          height: w,
+          borderRadius: w / 2,
+          backgroundColor: color,
+          transform: [{ rotate: "-45deg" }],
+        }}
+      />
+      <View
+        style={{
+          position: "absolute",
+          left: cx + armMidX - armLen / 2,
+          top: armMidY - w / 2,
+          width: armLen,
+          height: w,
+          borderRadius: w / 2,
+          backgroundColor: color,
+          transform: [{ rotate: "45deg" }],
+        }}
+      />
+    </View>
+  );
+}
+
 const s = StyleSheet.create({
   btn: { minHeight: 48, paddingHorizontal: 18, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   btnText: { fontSize: 16, fontWeight: "600" },

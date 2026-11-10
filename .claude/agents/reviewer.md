@@ -18,6 +18,7 @@ Input: the brief, and how to get the diff (usually `git diff` or `git diff <base
      into place.
    - Calls with side effects (e.g. `BookController.update()` starts the generation queue).
    - React Native: a TextInput inside a ScrollView needs `keyboardShouldPersistTaps="handled"`.
+   - A cache keyed by a count: does anything else change the content (voice, language, seed)?
    - Repo rules in CLAUDE.md (no node_modules edits, no GPL, UI text in Slovak, comments in English).
 3. Only use Bash for read-only commands (git diff, git show, grep, cat, npm test, tsc).
 
