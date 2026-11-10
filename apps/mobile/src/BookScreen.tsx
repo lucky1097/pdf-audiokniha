@@ -1,10 +1,12 @@
 import { GARBLED_NOTE, type Voice } from "@audiokniha/core";
-import { useEffect, useState, useSyncExternalStore } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BookController, type BookState } from "./lib/book.ts";
 import { getProject } from "./lib/storage.ts";
 import { PlayerBar } from "./PlayerBar.tsx";
+import { Dictionary } from "./Dictionary.tsx";
+import { Export } from "./Export.tsx";
 import { ReadAlong } from "./ReadAlong.tsx";
 import { useColors, type Colors } from "./theme.ts";
 import { Bar, Button, Cover, Note } from "./ui.tsx";
@@ -31,17 +33,26 @@ function Book({ ctl, onBack }: { ctl: BookController; onBack: () => void }) {
   const insets = useSafeAreaInsets();
   const st = useSyncExternalStore(ctl.subscribe, ctl.getState);
   const [voices, setVoices] = useState(false);
+  const [dictionary, setDictionary] = useState(false);
   const [reading, setReading] = useState(false);
   const p = st.project;
   const ready = st.ready.reduce((a, b) => a + b, 0);
   const total = st.total.reduce((a, b) => a + b, 0);
+  // Recounted when the ready count changes (a sentence was made or the audio was deleted).
+  const audio = useMemo(() => ctl.audioSize(), [ctl, ready]);
+  const confirmDeleteAudio = () =>
+    Alert.alert("Zmazať zvuk knihy?", "Text a záložka zostanú. Zvuk sa pri počúvaní pripraví znova.", [
+      { text: "Zrušiť", style: "cancel" },
+      { text: "Zmazať", style: "destructive", onPress: () => void ctl.deleteAudio() },
+    ]);
   const chapterTitle = (i: number) => p.chapters[i]?.title || `Kapitola ${i + 1}`;
   const share = (i: number) => (i < st.chapter ? 1 : i > st.chapter ? 0 : Math.min(st.sentence + 1, st.total[i] ?? 0) / Math.max(1, st.total[i] ?? 0));
   const started = st.chapter > 0 || st.sentence > 0 || st.playing;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 18, paddingBottom: 140 }}>
+      {/* Taps go through with the keyboard open ("Pridať" in the dictionary), and the inputs stay above it. */}
+      <ScrollView contentContainerStyle={{ padding: 20, gap: 18, paddingBottom: 140 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
         <Button title="‹ Knižnica" kind="quiet" onPress={onBack} style={{ alignSelf: "flex-start", paddingHorizontal: 0 }} />
         <View style={{ flexDirection: "row", gap: 16, alignItems: "flex-end" }}>
           <Cover title={p.title} size={120} />
@@ -84,12 +95,34 @@ function Book({ ctl, onBack }: { ctl: BookController; onBack: () => void }) {
             />
           )}
           {p.generating && <Text style={{ color: c.ink2, fontSize: 13 }}>Kým sa pripravuje celá kniha, obrazovka zostane zapnutá.</Text>}
+          <Text style={{ color: c.ink2, fontSize: 13 }}>Zvuk knihy zaberá {formatMb(audio)} MB.</Text>
+          {audio > 0 && <Button title="Zmazať zvuk" kind="quiet" onPress={confirmDeleteAudio} />}
         </View>
+
+        <Export ctl={ctl} st={st} />
 
         <View style={{ flexDirection: "row", gap: 10 }}>
           <Button title={p.lang === "sk" ? "Slovenčina" : "Angličtina"} kind="secondary" style={{ flex: 1 }} onPress={() => ctl.update({ lang: p.lang === "sk" ? "en" : "sk" })} />
-          <Button title="Hlas" kind="secondary" style={{ flex: 1 }} onPress={() => setVoices(!voices)} />
+          <Button
+            title="Hlas"
+            kind="secondary"
+            style={{ flex: 1 }}
+            onPress={() => {
+              setVoices(!voices);
+              setDictionary(false);
+            }}
+          />
+          <Button
+            title="Výslovnosť"
+            kind="secondary"
+            style={{ flex: 1 }}
+            onPress={() => {
+              setDictionary(!dictionary);
+              setVoices(false);
+            }}
+          />
         </View>
+        {dictionary && <Dictionary ctl={ctl} st={st} />}
         {voices && (
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             {VOICES.map((v) => (
@@ -141,6 +174,12 @@ function Book({ ctl, onBack }: { ctl: BookController; onBack: () => void }) {
       {reading && <ReadAlong ctl={ctl} st={st} onClose={() => setReading(false)} />}
     </View>
   );
+}
+
+/** One decimal below 10 MB, whole megabytes above; Slovak decimal comma. */
+function formatMb(bytes: number): string {
+  const mb = bytes / (1024 * 1024);
+  return mb < 10 ? mb.toFixed(1).replace(".", ",") : String(Math.round(mb));
 }
 
 function Status({ st, c, onRetry }: { st: BookState; c: Colors; onRetry: () => void }) {

@@ -5,7 +5,7 @@ import { PARAGRAPH_GAP, SENTENCE_GAP, chapterSentences, wavBytes, type Project, 
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer, type AudioStatus } from "expo-audio";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { NO_VOICE_MESSAGE, downloadModel, loadEngine, modelDownloaded, synthesize, voiceAvailable, type DownloadProgress } from "./engine.ts";
-import { audioFile, hasAudio, saveProject, writeAudio } from "./storage.ts";
+import { audioBytes, audioFile, deleteBookAudio, hasAudio, listProjects, saveProject, writeAudio, writeRawWav } from "./storage.ts";
 
 const AHEAD = 6;
 export const RATES = [1, 1.25, 1.5, 2, 0.75] as const;
@@ -167,7 +167,7 @@ export class BookController {
         const p = this.state.project;
         const t0 = Date.now();
         const { pcm, sampleRate } = await synthesize(job.s.text, p.lang, p.voice, p.steps, job.s.seed);
-        writeAudio(job.s.key, wavBytes(pcm, sampleRate, job.s.paragraphEnd ? PARAGRAPH_GAP : SENTENCE_GAP));
+        await writeAudio(job.s.key, wavBytes(pcm, sampleRate, job.s.paragraphEnd ? PARAGRAPH_GAP : SENTENCE_GAP));
         const ready = [...this.state.ready];
         ready[job.chapter] += 1;
         this.set({ ready, rtf: (Date.now() - t0) / 1000 / (pcm.length / sampleRate) });
@@ -252,9 +252,32 @@ export class BookController {
   }
 
   private silenceUri(): string {
-    const f = audioFile("silence-1s");
-    if (!f.exists) writeAudio("silence-1s", wavBytes(new Int16Array(0), 22050, 1));
-    return f.uri;
+    if (!audioFile("silence-1s").exists) writeRawWav("silence-1s", wavBytes(new Int16Array(0), 22050, 1));
+    return audioFile("silence-1s").uri;
+  }
+
+  /** Every sentence key of this book, all chapters. */
+  keys(): string[] {
+    return this.state.project.chapters.flatMap((_, c) => this.sentencesOf(c).map((s) => s.key));
+  }
+
+  /** Bytes this book's audio takes on disk. */
+  audioSize(): number {
+    return audioBytes(this.keys());
+  }
+
+  /** Frees the audio; the text and the bookmark stay. Sentences another saved book shares are kept. */
+  async deleteAudio(): Promise<void> {
+    this.pause();
+    // Off before the files go, without starting the queue (update() would): it would make the sentences ahead again.
+    if (this.state.project.generating) {
+      const project = { ...this.state.project, generating: false, updated: Date.now() };
+      saveProject(project);
+      this.set({ project });
+    }
+    const others = await listProjects();
+    deleteBookAudio(this.state.project, others);
+    this.recount();
   }
 
   private advance() {

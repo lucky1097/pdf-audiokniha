@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert, FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NO_VOICE_MESSAGE, modelDownloaded, voiceAvailable } from "./lib/engine.ts";
-import { deleteProject, listProjects, saveProject } from "./lib/storage.ts";
+import { deleteBookAudio, deleteProject, listProjects, saveProject } from "./lib/storage.ts";
 import { PdfReader, type PdfResult } from "./PdfReader.tsx";
 import { useColors } from "./theme.ts";
 import { Button, Cover, Note } from "./ui.tsx";
@@ -75,8 +75,15 @@ export function Library({ onOpen }: { onOpen: (id: string) => void }) {
   function confirmDelete(p: Project) {
     Alert.alert("Odstrániť knihu?", `„${p.title}“ zmizne z tohto telefónu aj s pripraveným zvukom.`, [
       { text: "Zrušiť", style: "cancel" },
-      { text: "Odstrániť", style: "destructive", onPress: () => { deleteProject(p.id); reload(); } },
+      { text: "Odstrániť", style: "destructive", onPress: () => void removeBook(p) },
     ]);
+  }
+
+  async function removeBook(p: Project) {
+    const others = await listProjects();
+    deleteProject(p.id);
+    deleteBookAudio(p, others);
+    reload();
   }
 
   return (

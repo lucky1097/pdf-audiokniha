@@ -2,6 +2,8 @@ export { normalize, normalizeToText, spokenText, NORMALIZER_VERSION } from "./no
 export type { Lang, Span, SpanKind, NormalizeOptions } from "./normalize/index.ts";
 export { segment } from "./segment.ts";
 export { wordAt, wordSpans } from "./words.ts";
+export { AI_NOTICE, withChapters } from "./mp4.ts";
+export type { ChapterMark, Mp4Tags } from "./mp4.ts";
 export type { WordSpan } from "./words.ts";
 export { detectLang } from "./detect-lang.ts";
 export type { Segment, SegmentOptions } from "./segment.ts";
