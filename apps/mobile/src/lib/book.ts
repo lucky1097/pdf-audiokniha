@@ -4,7 +4,18 @@
 import { PARAGRAPH_GAP, SENTENCE_GAP, chapterSentences, wavBytes, type Project, type Sentence } from "@audiokniha/core";
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer, type AudioStatus } from "expo-audio";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
-import { NO_VOICE_MESSAGE, downloadModel, loadEngine, modelDownloaded, synthesize, voiceAvailable, type DownloadProgress } from "./engine.ts";
+import {
+  MODEL_BYTES,
+  NO_VOICE_MESSAGE,
+  getModelDownload,
+  loadEngine,
+  modelDownloaded,
+  startModelDownload,
+  subscribeModelDownload,
+  synthesize,
+  voiceAvailable,
+  type DownloadProgress,
+} from "./engine.ts";
 import { audioBytes, audioFile, deleteBookAudio, hasAudio, listProjects, saveProject, writeAudio, writeRawWav } from "./storage.ts";
 
 const AHEAD = 6;
@@ -166,8 +177,17 @@ export class BookController {
     // Without the native runtime (Expo Go) the 380 MB model would be downloaded for nothing.
     if (!voiceAvailable) throw new Error(NO_VOICE_MESSAGE);
     if (!modelDownloaded()) {
-      this.set({ phase: "downloading", download: { bytes: 0, total: 1, file: 0, files: 1 } });
-      await downloadModel((download) => this.set({ download }));
+      // Joins the download the library may already have started; never a second one.
+      this.set({ phase: "downloading", download: getModelDownload().progress ?? { bytes: 0, total: MODEL_BYTES, file: 0, files: 1 } });
+      const off = subscribeModelDownload(() => {
+        const p = getModelDownload().progress;
+        if (p) this.set({ download: p });
+      });
+      try {
+        await startModelDownload();
+      } finally {
+        off();
+      }
       this.set({ download: null });
     }
     this.set({ phase: "loading" });

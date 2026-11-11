@@ -2,6 +2,10 @@
 
 Newest first. Each: date, decision, why.
 
+- 2026-11-11 The voice model downloads from the first-run screen, before any book; one module-level store in engine.ts
+  (startModelDownload) is shared by the library and BookController, so there is never a second download. Wi‑Fi is
+  only advised in the text: checking it would need a new dependency (expo-network).
+
 - 2026-11-10 Book screen: "Vytvoriť audioknihu" means prepare the whole book (the user's words); sharing is a separate
   button next to the title. Tapping a chapter plays it and flows on into the next. Per-chapter offline preparation
   is a queue (project.queued) between the sentences ahead and the whole book.

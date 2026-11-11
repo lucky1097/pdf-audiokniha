@@ -10,6 +10,10 @@
 - The web app on iPhone Safari crashes loading the fp32 model; the iPhone app is the supported way.
 
 ## Gotchas
+- expo-file-system's DownloadTask.downloadAsync rejects on a non-2xx HTTP status (FileSystemDownloadTask.swift), so a
+  server error page is never moved into the model folder.
+- The model download store snapshot is made once from modelDownloaded(); if a later feature deletes model files, it
+  must reset the store too.
 - BookController.estimate() checks one file per sentence: call it in a useMemo keyed on the ready count, never per render or per row.
 - A cached export must be keyed by the sentence keys (ctl.keys()), not by counts: voice, language and seed change the audio.
 - Agents in .claude/agents load only in a session whose working folder is this repo. From another folder, give a

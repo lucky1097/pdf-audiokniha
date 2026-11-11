@@ -2,6 +2,7 @@
 // The model (about 380 MB) is downloaded once from Hugging Face into Application Support and stays offline.
 import { MODEL_ID, toPcm16 } from "@audiokniha/core";
 import { SupertonicEngine, VOICES, type Lang, type OrtLike, type SupertonicAssets, type Voice } from "@audiokniha/tts";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { Directory, File, Paths } from "expo-file-system";
 import { NativeModules } from "react-native";
 
@@ -53,6 +54,76 @@ export async function downloadModel(onProgress: (p: DownloadProgress) => void): 
     done += dest.size ?? 0;
     onProgress({ bytes: done, total: MODEL_BYTES, file: i + 1, files: FILES.length });
   }
+}
+
+// One download for the whole app: the library's first-run button and a book that needs the voice share it.
+export interface ModelDownload {
+  status: "missing" | "downloading" | "done" | "error";
+  progress: DownloadProgress | null;
+  error: string | null;
+}
+
+let current: ModelDownload | null = null;
+let running: Promise<void> | null = null;
+const listeners = new Set<() => void>();
+let lastNotify = 0;
+let pendingNotify: ReturnType<typeof setTimeout> | null = null;
+
+/** The current snapshot. It is a new object after every change, so React's useSyncExternalStore sees it. */
+export function getModelDownload(): ModelDownload {
+  current ??= { status: modelDownloaded() ? "done" : "missing", progress: null, error: null };
+  return current;
+}
+
+export function subscribeModelDownload(fn: () => void): () => void {
+  listeners.add(fn);
+  return () => void listeners.delete(fn);
+}
+
+function notify() {
+  if (pendingNotify) clearTimeout(pendingNotify);
+  pendingNotify = null;
+  lastNotify = Date.now();
+  for (const l of listeners) l();
+}
+
+function setStatus(patch: Partial<ModelDownload>) {
+  current = { ...getModelDownload(), ...patch };
+  notify();
+}
+
+/** Progress arrives many times a second: listeners are told at most every 250 ms, the snapshot is always current. */
+function setProgress(progress: DownloadProgress) {
+  current = { ...getModelDownload(), progress };
+  const wait = 250 - (Date.now() - lastNotify);
+  if (wait <= 0) notify();
+  else pendingNotify ??= setTimeout(notify, wait);
+}
+
+/** Starts the download, or joins the one already running. Resolves when the model is on the phone. */
+export function startModelDownload(): Promise<void> {
+  if (!voiceAvailable) return Promise.reject(new Error(NO_VOICE_MESSAGE));
+  if (running) return running;
+  if (modelDownloaded()) {
+    if (getModelDownload().status !== "done") setStatus({ status: "done", progress: null, error: null });
+    return Promise.resolve();
+  }
+  setStatus({ status: "downloading", progress: { bytes: 0, total: MODEL_BYTES, file: 0, files: FILES.length }, error: null });
+  running = (async () => {
+    // Keeps the screen on while 380 MB comes in; a failure to do so is not a reason to stop the download.
+    await activateKeepAwakeAsync("model").catch(() => {});
+    try {
+      await downloadModel(setProgress);
+      setStatus({ status: "done", progress: null, error: null });
+    } catch (e) {
+      setStatus({ status: "error", progress: null, error: e instanceof Error ? e.message : String(e) });
+      throw e;
+    } finally {
+      deactivateKeepAwake("model");
+      running = null;
+    }
+  })();
+  return running;
 }
 
 let engine: SupertonicEngine | null = null;
