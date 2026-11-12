@@ -10,6 +10,11 @@
 - The web app on iPhone Safari crashes loading the fp32 model; the iPhone app is the supported way.
 
 ## Gotchas
+- app.json `expo.name` must stay ASCII ("Audiokniha"): it names the Xcode project and target, and "Prečítaj mi"
+  became target "Pretajmi" and failed EAS's Configure Xcode project phase (build 13). The name under the icon is
+  `ios.infoPlist.CFBundleDisplayName`.
+- EAS build logs are compressed: download the logFiles URL from `eas.cmd build:view <id> --json` and decompress with
+  node zlib (brotli) before reading.
 - apps/mobile/src/generated/ is gitignored, so EAS never gets it from git: everything in it must be made by the root
   postinstall (embed-pdfjs.mjs, gen-licenses.mjs). A new generated file needs a postinstall step too.
 - expo-file-system's DownloadTask.downloadAsync rejects on a non-2xx HTTP status (FileSystemDownloadTask.swift), so a

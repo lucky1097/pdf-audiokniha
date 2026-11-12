@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Prečítaj mi",
+    "name": "Audiokniha",
     "slug": "audiokniha",
     "scheme": "audiokniha",
     "version": "1.0.0",
@@ -14,6 +14,7 @@
         "com.apple.developer.kernel.increased-memory-limit": true
       },
       "infoPlist": {
+        "CFBundleDisplayName": "Prečítaj mi",
         "UIBackgroundModes": [
           "audio"
         ],

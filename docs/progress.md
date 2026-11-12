@@ -1,7 +1,7 @@
 # Progress
 
 ## Now
-- 2026-11-12, not committed: App Store release prep. App renamed "Prečítaj mi" (app.json name, version 1.0.0); "O appke"
+- 2026-11-12, not committed: App Store release prep. App renamed "Prečítaj mi" (CFBundleDisplayName; expo.name stays "Audiokniha"; version 1.0.0); "O appke"
   screen (privacy, AI notice, OpenRAIL-M use restrictions as terms, licence texts generated on install); privacy.html
   and support.html on the site; store texts and review notes in
   docs/app-store.md. Support e-mail precitajmi.support@gmail.com. Left: screenshots, new build, App Store Connect form and "Submit for Review"
