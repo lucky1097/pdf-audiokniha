@@ -22,7 +22,7 @@ const MAX_PDF_BYTES = 60 * 1024 * 1024;
 
 const mb = (bytes: number) => Math.round(bytes / 1048576);
 
-export function Library({ onOpen }: { onOpen: (id: string) => void }) {
+export function Library({ onOpen, onAbout }: { onOpen: (id: string) => void; onAbout: () => void }) {
   const c = useColors();
   const insets = useSafeAreaInsets();
   const [books, setBooks] = useState<Project[]>([]);
@@ -138,6 +138,11 @@ export function Library({ onOpen }: { onOpen: (id: string) => void }) {
                 <Button title="Najprv pridať knihu" kind="quiet" onPress={() => void pickFile()} disabled={!!busy} />
                 {busy && <Text style={{ color: c.ink2, textAlign: "center" }}>{busy}</Text>}
                 <Text style={{ color: c.ink2, fontSize: 13, textAlign: "center" }}>Hlas je vytvorený umelou inteligenciou.</Text>
+                <Pressable accessibilityRole="button" onPress={onAbout}>
+                  <Text style={{ color: c.accentText, fontSize: 13, textAlign: "center" }}>
+                    Používaním appky súhlasíš s podmienkami použitia hlasu.
+                  </Text>
+                </Pressable>
               </>
             ) : (
               <>
@@ -177,6 +182,9 @@ export function Library({ onOpen }: { onOpen: (id: string) => void }) {
               </>
             )}
           </View>
+        }
+        ListFooterComponent={
+          <Button title="O appke a licencie" kind="quiet" onPress={onAbout} style={{ alignSelf: "center", marginTop: 24 }} />
         }
         renderItem={({ item }) => (
           <Pressable

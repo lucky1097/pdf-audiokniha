@@ -2,6 +2,12 @@
 
 Newest first. Each: date, decision, why.
 
+- 2026-11-12 The iPhone app is "Prečítaj mi" ("Audify" was taken) in the App Store and under the icon (Apple wants them to match); the web app
+  stays "Audiokniha". App Store first, Google Play later.
+- 2026-11-12 The OpenRAIL-M use restrictions (Attachment A) are passed on as terms of use: "O appke" in the app, the
+  support page, and a line on the welcome screen ("Používaním appky súhlasíš…"); the English licence is binding and
+  shipped in full in the app.
+
 - 2026-11-11 The voice model downloads from the first-run screen, before any book; one module-level store in engine.ts
   (startModelDownload) is shared by the library and BookController, so there is never a second download. Wi‑Fi is
   only advised in the text: checking it would need a new dependency (expo-network).

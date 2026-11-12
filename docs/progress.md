@@ -1,7 +1,12 @@
 # Progress
 
 ## Now
-- 2026-11-11, not committed, not tested on the iPhone: first-run screen (approved on a mockup). Welcome with three
+- 2026-11-12, not committed: App Store release prep. App renamed "Prečítaj mi" (app.json name, version 1.0.0); "O appke"
+  screen (privacy, AI notice, OpenRAIL-M use restrictions as terms, licence texts generated on install); privacy.html
+  and support.html on the site; store texts and review notes in
+  docs/app-store.md. Support e-mail precitajmi.support@gmail.com. Left: screenshots, new build, App Store Connect form and "Submit for Review"
+  (Lucky). Google Play later (no Android build yet; new Google accounts need 12 testers for 14 days).
+- 2026-11-11 0ec0346, not tested on the iPhone: first-run screen (approved on a mockup). Welcome with three
   steps and "Stiahnuť hlas" (the 380 MB voice downloads before the first book, screen kept awake), a download card
   with progress while books can be added, a "Hlas ešte nie je stiahnutý" card for users with books, an empty library
   with "Pridať PDF" / "Vložiť text". One shared download store in engine.ts; a book joins it (briefs J, K).

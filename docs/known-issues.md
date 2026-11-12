@@ -10,6 +10,8 @@
 - The web app on iPhone Safari crashes loading the fp32 model; the iPhone app is the supported way.
 
 ## Gotchas
+- apps/mobile/src/generated/ is gitignored, so EAS never gets it from git: everything in it must be made by the root
+  postinstall (embed-pdfjs.mjs, gen-licenses.mjs). A new generated file needs a postinstall step too.
 - expo-file-system's DownloadTask.downloadAsync rejects on a non-2xx HTTP status (FileSystemDownloadTask.swift), so a
   server error page is never moved into the model folder.
 - The model download store snapshot is made once from modelDownloaded(); if a later feature deletes model files, it

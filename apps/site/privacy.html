@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zásady ochrany súkromia | Audiokniha</title>
+<meta name="robots" content="index, follow">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#ffffff">
+<style>
+:root {
+  --p-bg: #ffffff; --p-ink: #111827; --p-muted: #4b5563; --p-link: #c2410c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --p-bg: #0f1115; --p-ink: #f3f4f6; --p-muted: #a3a9b6; --p-link: #fdba74; }
+}
+:root[data-theme="dark"] { --p-bg: #0f1115; --p-ink: #f3f4f6; --p-muted: #a3a9b6; --p-link: #fdba74; }
+:root { color-scheme: light; }
+:root[data-theme="dark"], :root:not([data-theme="light"]) { color-scheme: dark; }
+body {
+  margin: 0; background: var(--p-bg); color: var(--p-ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 17px; line-height: 1.6;
+}
+main { max-width: 42rem; margin: 0 auto; padding: 24px 20px; }
+a { color: var(--p-link); }
+.top { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 15px; }
+h1 { font-size: 1.9rem; line-height: 1.2; margin: 1.2rem 0 0.4rem; }
+h2 { font-size: 1.25rem; margin: 2rem 0 0.6rem; }
+p, li { margin: 0.6rem 0; }
+ul { padding-left: 1.2rem; }
+.muted { color: var(--p-muted); }
+section { margin-top: 2.5rem; }
+hr { border: 0; border-top: 1px solid var(--p-muted); opacity: 0.3; margin: 2.5rem 0 0; }
+</style>
+</head>
+<body>
+<main>
+  <nav class="top" aria-label="Navigácia">
+    <a href="index.html">← Audiokniha</a>
+    <a href="#en" lang="en">English</a>
+  </nav>
+
+  <section id="sk" lang="sk">
+    <h1>Zásady ochrany súkromia</h1>
+    <p class="muted">Platné od 12. 11. 2026</p>
+    <p>Tento text platí pre iPhone appku Prečítaj mi a pre webovú appku Audiokniha.</p>
+    <ul>
+      <li>Nezbierame žiadne osobné údaje. Appka nemá účty, reklamy, analytiku ani sledovanie.</li>
+      <li>Knihy, texty, slovník výslovnosti a vytvorený zvuk sú uložené len v tvojom zariadení a nikam ich neposielame. Zmažeš ich zmazaním knihy alebo celej appky.</li>
+      <li>Hlasový model (asi 380 MB) appka raz stiahne zo stránky Hugging Face. Ako pri každom sťahovaní, Hugging Face pritom vidí IP adresu zariadenia; platia pre to zásady Hugging Face (<a href="https://huggingface.co/privacy">https://huggingface.co/privacy</a>).</li>
+      <li>Keď audioknihu zdieľaš, systém ju pošle tam, kam vyberieš ty.</li>
+      <li>Táto stránka beží na GitHub Pages; GitHub môže zaznamenávať IP adresy návštevníkov (<a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">všeobecné zásady ochrany súkromia GitHub</a>). Úvodná stránka načítava písmo z Google Fonts (<a href="https://policies.google.com/privacy">zásady Google</a>).</li>
+      <li>Údaje nezbierame od nikoho, teda ani od detí.</li>
+      <li>Zmeny zverejníme na tejto stránke s novým dátumom.</li>
+    </ul>
+    <p>Kontakt: e-mail <a href="mailto:precitajmi.support@gmail.com">precitajmi.support@gmail.com</a></p>
+  </section>
+
+  <hr>
+
+  <section id="en" lang="en">
+    <h2>Privacy Policy</h2>
+    <p class="muted">Effective 12 Nov 2026</p>
+    <p>This policy covers the iPhone app Prečítaj mi (“Read to me”) and the web app Audiokniha.</p>
+    <ul>
+      <li>We do not collect any personal data. The app has no accounts, ads, analytics or tracking.</li>
+      <li>Books, texts, the pronunciation dictionary and the generated audio are stored only on your device and are never sent anywhere. Deleting a book or the whole app deletes them.</li>
+      <li>The voice model (about 380 MB) is downloaded once from Hugging Face. As with any download, Hugging Face sees the device's IP address; the Hugging Face privacy policy applies (<a href="https://huggingface.co/privacy">https://huggingface.co/privacy</a>).</li>
+      <li>When you share an audiobook, the system sends it where you choose.</li>
+      <li>This page is hosted on GitHub Pages; GitHub may log visitors' IP addresses (<a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub General Privacy Statement</a>). The home page loads a font from Google Fonts (<a href="https://policies.google.com/privacy">Google Privacy Policy</a>).</li>
+      <li>We do not collect data from anyone, including children.</li>
+      <li>Changes will be posted on this page with a new date.</li>
+    </ul>
+    <p>Contact: email <a href="mailto:precitajmi.support@gmail.com">precitajmi.support@gmail.com</a></p>
+  </section>
+</main>
+</body>
+</html>
