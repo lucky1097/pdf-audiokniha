@@ -1,6 +1,9 @@
 # Progress
 
 ## Now
+- 2026-11-15, not committed: launch films made with HyperFrames in video/launch (storylines A and C, each 16:9 and
+  9:16; projects film-a, film-c, film-a-9x16, film-c-9x16; MP4s in video/launch/renders). Voice = the app's own F4,
+  sound normalised to about -16 LUFS. No music yet. video/ is gitignored (local only).
 - 2026-11-12, not committed: App Store release prep. App renamed "Prečítaj mi" (CFBundleDisplayName; expo.name stays "Audiokniha"; version 1.0.0); "O appke"
   screen (privacy, AI notice, OpenRAIL-M use restrictions as terms, licence texts generated on install); privacy.html
   and support.html on the site; store texts and review notes in
