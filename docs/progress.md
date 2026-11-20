@@ -1,6 +1,10 @@
 # Progress
 
 ## Now
+- 2026-11-20, not committed: Slovak háček repair for scanned text (brief P): word list of 11,521 forms (119 KB) in
+  packages/core/src/sk-words.ts, rule in fixSlovakLetters, apostrophe rule tightened (McDonald's, d'Italia stay),
+  licences for Leipzig (CC BY 4.0) and hunspell-sk (MPL-2.0) in "O appke". 67 tests pass, iOS bundle exports.
+  Commit c43c0f1 (scan feature, 1.1.0) is not pushed. Next: commit, a new TestFlight build, a test with real pages.
 - 2026-11-20, not committed, not built: "Odfotiť stranu" parts 1-3 of 4. Native module apps/mobile/modules/text-scanner
   (VisionKit scanner + Live Text/Vision, Swift, not compiled: no Mac), camera permission text in app.json, core
   textFromScan/fixSlovakLetters with tests (brief N), Library: "Odfotiť stranu", review sheet "Skontroluj text"

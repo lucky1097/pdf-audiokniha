@@ -23,6 +23,8 @@ const sources = [
   { name: "Supertonic 3 (Supertone Inc.)", licence: "OpenRAIL-M", file: "licenses/supertonic-3-OpenRAIL-M.txt" },
   { name: "ONNX Runtime", licence: "MIT", text: ONNX_MIT },
   { name: "PDF.js (Mozilla)", licence: "Apache-2.0", file: "node_modules/pdfjs-dist/LICENSE" },
+  { name: "Slovenské slová (Leipzig Corpora Collection)", licence: "CC BY 4.0", file: "licenses/leipzig-corpora-CC-BY-4.0.txt" },
+  { name: "Slovenský slovník hunspell-sk", licence: "MPL-2.0", file: "licenses/hunspell-sk-MPL-2.0.txt" },
   { name: "React Native (Meta)", licence: "MIT", file: "node_modules/react-native/LICENSE" },
   { name: "React (Meta)", licence: "MIT", file: "node_modules/react/LICENSE" },
   { name: "Expo", licence: "MIT", file: "node_modules/expo/LICENSE" },

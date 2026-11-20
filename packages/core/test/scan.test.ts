@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fixSlovakLetters, textFromScan, type ScanLine } from "../src/index.ts";
+import { SK_HACEK_WORDS } from "../src/sk-words.ts";
 
 test("apostrophe forms become ť, ľ, ď (capitals too), I' and |' become ľ between lowercase letters", () => {
   const pairs: [string, string][] = [
@@ -93,4 +94,51 @@ test("without boxes: a short line ending a sentence closes the paragraph", () =>
 test("a page that ends mid-sentence continues on the next page", () => {
   const pages: ScanLine[][] = [[{ text: "Dedko sa vrátil domov a potom" }], [{ text: "prišiel domov." }]];
   assert.equal(textFromScan(pages, "sk"), "Dedko sa vrátil domov a potom prišiel domov.");
+});
+
+test("dropped háček is restored from the word list, in the word's case", () => {
+  const pairs: [string, string][] = [
+    ["robit", "robiť"],
+    ["velmi", "veľmi"],
+    ["niekolko", "niekoľko"],
+    ["ludia", "ľudia"],
+    ["dakujem", "ďakujem"],
+    ["lahko", "ľahko"],
+    ["Ludia", "Ľudia"],
+    ["VELMI", "VEĽMI"],
+  ];
+  for (const [from, to] of pairs) assert.equal(fixSlovakLetters(from, "sk"), to, from);
+  assert.equal(
+    fixSlovakLetters("Ludia chcu robit velmi vela.", "sk"),
+    "Ľudia chcu robiť veľmi veľa.",
+  );
+});
+
+test("real plain Slovak words are not changed by the word list", () => {
+  for (const w of ["byt", "celkom", "hotel", "list", "let", "mat", "stat", "stal"]) {
+    assert.equal(fixSlovakLetters(w, "sk"), w, w);
+  }
+});
+
+test("English text with a dropped háček is not changed", () => {
+  assert.equal(fixSlovakLetters("I like to robit", "en"), "I like to robit");
+});
+
+test("correct text that the repair used to change is unchanged", () => {
+  for (const s of [
+    "McDonald's",
+    "Ted's car",
+    "d'Italia",
+    "pod stolom",
+    "Pod mostom",
+    "ľuďom",
+    "uvoľniť",
+    "Chmel",
+  ]) {
+    assert.equal(fixSlovakLetters(s, "sk"), s, s);
+  }
+});
+
+test("the word list stays small", () => {
+  assert.ok(SK_HACEK_WORDS.length < 200_000, `list is ${SK_HACEK_WORDS.length} chars`);
 });

@@ -1,6 +1,7 @@
 // Text from photographed pages. The iPhone's on-device text recognition gives lines per page; this turns them into
 // paragraphs and repairs the apostrophe forms Apple writes for ť, ľ, ď (t', d', l', I').
 import type { Lang } from "./normalize/types.ts";
+import { SK_HACEK_WORDS } from "./sk-words.ts";
 
 /** One recognised line. Box is normalised to the page (0..1, origin top-left); missing when the engine gives none. */
 export interface ScanLine {
@@ -19,9 +20,14 @@ const LOWER_START = /^\p{Ll}/u;
 
 const APOSTROPHE = "['’`´]";
 const APOSTROPHE_LETTER: Record<string, string> = { t: "ť", d: "ď", l: "ľ", T: "Ť", D: "Ď", L: "Ľ" };
+const PLAIN_LETTER: Record<string, string> = { ť: "t", ľ: "l", ď: "d" };
 // Apple reads ľ as a capital I or a bar, so these two only count between lowercase letters or at a word end.
 const APOSTROPHE_I = new RegExp(`(?<=\\p{Ll})[I|]${APOSTROPHE}(?=\\p{Ll}|\\s|$|[.,;:!?)“"])`, "gu");
-const APOSTROPHE_TDL = new RegExp(`(?<!\\p{N})([tdlTDL])${APOSTROPHE}(?=\\p{L}|\\s|$|[.,;:!?)“"])`, "gu");
+// The letter after the apostrophe is lowercase (d'Italia stays), and "s" alone is an English possessive (McDonald's).
+const APOSTROPHE_TDL = new RegExp(
+  `(?<!\\p{N})([tdlTDL])${APOSTROPHE}(?!s(?!\\p{L}))(?=\\p{Ll}|\\s|$|[.,;:!?)“"])`,
+  "gu",
+);
 
 /** Pages of lines (in the order the engine gave them) → text with paragraphs separated by one blank line. */
 export function textFromScan(pages: ScanLine[][], lang: Lang): string {
@@ -60,9 +66,45 @@ export function textFromScan(pages: ScanLine[][], lang: Lang): string {
 /** Slovak letter repair: apostrophe forms become ť, ľ, ď; returns the text unchanged for lang "en". */
 export function fixSlovakLetters(text: string, lang: Lang): string {
   if (lang !== "sk") return text;
-  return text
-    .replace(APOSTROPHE_TDL, (_, c: string) => APOSTROPHE_LETTER[c])
-    .replace(APOSTROPHE_I, "ľ");
+  return fixDroppedHacek(
+    text.replace(APOSTROPHE_TDL, (_, c: string) => APOSTROPHE_LETTER[c]).replace(APOSTROPHE_I, "ľ"),
+  );
+}
+
+// A guess from letter patterns changed correct words (Brief N round 2), so the repair is a word list instead:
+// SK_HACEK_WORDS, built by tools/build-sk-words.mjs. Plain real words (byt, celkom, hotel) are left out when the
+// list is built, so they never change here.
+let hacekForms: Map<string, string> | undefined;
+
+/** Plain spelling (ť→t, ľ→l, ď→d) → the háček form from the list. Built on first use. */
+function hacekFormsByPlain(): Map<string, string> {
+  if (!hacekForms) {
+    hacekForms = new Map();
+    for (const form of SK_HACEK_WORDS.split(" ")) {
+      const key = plainOf(form);
+      if (!hacekForms.has(key)) hacekForms.set(key, form);
+    }
+  }
+  return hacekForms;
+}
+
+function plainOf(word: string): string {
+  return word.replace(/[ťľď]/g, (c) => PLAIN_LETTER[c]);
+}
+
+/** Replaces a word whose háček was dropped with the listed form, in the word's case. */
+function fixDroppedHacek(text: string): string {
+  const forms = hacekFormsByPlain();
+  return text.replace(/\p{L}+/gu, (word) => {
+    // A word that already has ť, ľ or ď is right as it is.
+    if (/[ťľďŤĽĎ]/.test(word)) return word;
+    const lower = word.toLowerCase();
+    const form = forms.get(plainOf(lower));
+    if (!form || form === lower) return word;
+    if (word.length > 1 && word === word.toUpperCase()) return form.toUpperCase();
+    if (/^\p{Lu}/u.test(word)) return form[0].toUpperCase() + form.slice(1);
+    return form;
+  });
 }
 
 /** Non-empty lines of one page, in reading order, without a page number at the top or bottom. */

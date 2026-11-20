@@ -1,0 +1,1 @@
+Slovak word frequencies from the Leipzig Corpora Collection, slk_newscrawl_2016_1M, Universität Leipzig. Licensed under CC BY 4.0, https://creativecommons.org/licenses/by/4.0/. Used to build a list of Slovak words with ť, ľ, ď.

@@ -2,6 +2,13 @@
 
 Newest first. Each: date, decision, why.
 
+- 2026-11-20 Dropped háčky (ť, ľ, ď) in scanned text are repaired from a word list (packages/core/src/sk-words.ts,
+  built by tools/build-sk-words.mjs from Leipzig news word counts, CC BY 4.0, and the hunspell-sk dictionary,
+  MPL-2.0), not guessed. A form is listed only when its plain spelling is not a dictionary word AND is less than half
+  as common in the corpus (nspell wrongly rejects "pod", so the dictionary alone turned pod→poď). Words that already
+  have ť/ľ/ď are never touched. Checked on 180,000 correct news sentences: the changes left are typo fixes in the
+  news itself (ked→keď, velmi→veľmi); rare wrong ones remain (Olga→Oľga, Král→Kráľ), and the review sheet covers them.
+
 - 2026-11-20 Photographed pages: Apple only (VisionKit document camera; Live Text by default, Vision as the option with
   line boxes), all on the phone; Google ML Kit was not taken. Slovak repair only turns apostrophe forms (t', l', d', I')
   into ť, ľ, ď; a dropped háček is not guessed: letter statistics scored celkom→ceľkom higher than robit→robiť.
