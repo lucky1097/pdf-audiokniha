@@ -26,3 +26,5 @@ export {
 } from "./project.ts";
 // The project's chapter is exported as ProjectChapter: Chapter is the PDF layout's.
 export type { Chapter as ProjectChapter, ParagraphView, Project, Sentence, Voice } from "./project.ts";
+export { fixSlovakLetters, textFromScan } from "./scan.ts";
+export type { ScanLine } from "./scan.ts";

@@ -1,4 +1,4 @@
-import { chaptersFromText, detectLang, newProject, type Project } from "@audiokniha/core";
+import { chaptersFromText, detectLang, newProject, textFromScan, type Project, type ScanLine } from "@audiokniha/core";
 import * as DocumentPicker from "expo-document-picker";
 import { File } from "expo-file-system";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
@@ -12,6 +12,7 @@ import {
   subscribeModelDownload,
   voiceAvailable,
 } from "./lib/engine.ts";
+import { recognizeText, scanPages, scannerAvailable } from "../modules/text-scanner/index.ts";
 import { deleteBookAudio, deleteProject, listProjects, saveProject } from "./lib/storage.ts";
 import { PdfReader, type PdfResult } from "./PdfReader.tsx";
 import { useColors } from "./theme.ts";
@@ -30,7 +31,7 @@ export function Library({ onOpen, onAbout }: { onOpen: (id: string) => void; onA
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [paste, setPaste] = useState<string | null>(null);
+  const [sheet, setSheet] = useState<{ mode: "paste" | "scan"; text: string } | null>(null);
   const [pdf, setPdf] = useState<{ base64: string; name: string } | null>(null);
   const dl = useSyncExternalStore(subscribeModelDownload, getModelDownload);
 
@@ -83,6 +84,36 @@ export function Library({ onOpen, onAbout }: { onOpen: (id: string) => void; onA
     }
   }
 
+  /** Opens the document scanner and reads the pages on the phone. append adds the pages to the open sheet. */
+  async function scan(append = false) {
+    setError(null);
+    try {
+      const uris = await scanPages();
+      if (uris.length === 0) return; // the user cancelled
+      const pages: ScanLine[][] = [];
+      for (const [i, uri] of uris.entries()) {
+        setBusy(`Čítam text, strana ${i + 1} z ${uris.length}…`);
+        pages.push(await recognizeText(uri));
+        try {
+          new File(uri).delete(); // the photo is not kept, the text is
+        } catch {}
+      }
+      const raw = pages.flat().map((l) => l.text).join(" ");
+      const text = textFromScan(pages, detectLang(raw));
+      if (!text.trim()) {
+        setError("Na fotke som nenašiel text. Skús ju odfotiť ostrejšie a pri lepšom svetle.");
+      } else if (append) {
+        setSheet((prev) => (prev ? { ...prev, text: prev.text.trimEnd() + "\n\n" + text } : { mode: "scan", text }));
+      } else {
+        setSheet({ mode: "scan", text });
+      }
+    } catch (e) {
+      setError(`Fotku sa nepodarilo prečítať: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setBusy(null);
+    }
+  }
+
   function onPdf(r: PdfResult, name: string) {
     setPdf(null);
     setBusy(null);
@@ -126,7 +157,11 @@ export function Library({ onOpen, onAbout }: { onOpen: (id: string) => void; onA
               <>
                 <Text style={[st.h1, { color: c.ink }]}>Knihy nahlas, priamo v telefóne</Text>
                 <Step n={1} title="Stiahni hlas" text="Raz, asi 380 MB, najlepšie cez Wi‑Fi." />
-                <Step n={2} title="Pridaj knihu" text="PDF alebo text knihy." />
+                <Step
+                  n={2}
+                  title="Pridaj knihu"
+                  text={scannerAvailable ? "PDF, text alebo odfotená strana knihy." : "PDF alebo text knihy."}
+                />
                 <Step n={3} title="Počúvaj" text="Všetko zostáva v tvojom telefóne, nič sa nikam neposiela." />
                 {error && <Note tone="error">{error}</Note>}
                 {dl.status === "error" && <Note tone="error">{`Hlas sa nepodarilo stiahnuť: ${dl.error ?? ""}`}</Note>}
@@ -170,13 +205,31 @@ export function Library({ onOpen, onAbout }: { onOpen: (id: string) => void; onA
                 {!voiceAvailable && <Note tone="warn">{NO_VOICE_MESSAGE}</Note>}
                 {books.length === 0 && (
                   <Text style={{ color: c.ink2, fontSize: 15, lineHeight: 21 }}>
-                    Pridaj prvú knihu. PDF nájdeš v Súboroch, v e‑maile alebo v Stiahnutých.
+                    {scannerAvailable
+                      ? "Pridaj prvú knihu: PDF zo Súborov alebo e‑mailu, alebo odfoť stranu knihy."
+                      : "Pridaj prvú knihu. PDF nájdeš v Súboroch, v e‑maile alebo v Stiahnutých."}
                   </Text>
                 )}
-                <View style={{ flexDirection: "row", gap: 10 }}>
-                  <Button title="Pridať PDF" onPress={() => void pickFile()} busy={!!busy} style={{ flex: 1 }} />
-                  <Button title="Vložiť text" kind="secondary" onPress={() => setPaste("")} disabled={!!busy} style={{ flex: 1 }} />
-                </View>
+                {scannerAvailable ? (
+                  <>
+                    <View style={{ flexDirection: "row", gap: 10 }}>
+                      <Button title="Pridať PDF" onPress={() => void pickFile()} busy={!!busy} style={{ flex: 1 }} />
+                      <Button title="Odfotiť stranu" kind="secondary" onPress={() => void scan()} disabled={!!busy} style={{ flex: 1 }} />
+                    </View>
+                    <Button
+                      title="Vložiť text"
+                      kind="quiet"
+                      onPress={() => setSheet({ mode: "paste", text: "" })}
+                      disabled={!!busy}
+                      style={{ alignSelf: "center" }}
+                    />
+                  </>
+                ) : (
+                  <View style={{ flexDirection: "row", gap: 10 }}>
+                    <Button title="Pridať PDF" onPress={() => void pickFile()} busy={!!busy} style={{ flex: 1 }} />
+                    <Button title="Vložiť text" kind="secondary" onPress={() => setSheet({ mode: "paste", text: "" })} disabled={!!busy} style={{ flex: 1 }} />
+                  </View>
+                )}
                 {busy && <Text style={{ color: c.ink2 }}>{busy}</Text>}
                 {books.length > 0 && <Text style={[st.h2, { color: c.ink, marginTop: 8 }]}>Moje knihy</Text>}
               </>
@@ -214,30 +267,44 @@ export function Library({ onOpen, onAbout }: { onOpen: (id: string) => void; onA
         />
       )}
 
-      <Modal visible={paste !== null} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPaste(null)}>
+      <Modal visible={sheet !== null} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setSheet(null)}>
         <View style={{ flex: 1, backgroundColor: c.bg, padding: 20, gap: 14 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-            <Text style={[st.h2, { color: c.ink }]}>Vložiť text</Text>
-            <Button title="Zrušiť" kind="quiet" onPress={() => setPaste(null)} />
+            <Text style={[st.h2, { color: c.ink }]}>{sheet?.mode === "scan" ? "Skontroluj text" : "Vložiť text"}</Text>
+            <Button title="Zrušiť" kind="quiet" onPress={() => setSheet(null)} />
           </View>
+          {sheet?.mode === "scan" && (
+            <Text style={{ color: c.ink2, fontSize: 15, lineHeight: 21 }}>
+              Text je z fotky. Oprav, čo skener prečítal zle, a potom vytvor knihu.
+            </Text>
+          )}
           <TextInput
-            value={paste ?? ""}
-            onChangeText={setPaste}
+            value={sheet?.text ?? ""}
+            onChangeText={(text) => setSheet((prev) => (prev ? { ...prev, text } : prev))}
             multiline
-            autoFocus
+            autoFocus={sheet?.mode === "paste"}
             placeholder="Sem vlož text knihy. Prázdny riadok oddeľuje odseky, riadok „Kapitola 2“ začína novú kapitolu."
             placeholderTextColor={c.ink2}
             style={[st.input, { color: c.ink, backgroundColor: c.surface }]}
             textAlignVertical="top"
           />
+          {sheet?.mode === "scan" && (
+            <>
+              {/* The library behind the sheet cannot be seen, so errors of an added page show here. */}
+              {error && <Note tone="error">{error}</Note>}
+              <Button title="Odfotiť ďalšiu stranu" kind="secondary" onPress={() => void scan(true)} busy={!!busy} />
+              {busy && <Text style={{ color: c.ink2, fontSize: 15 }}>{busy}</Text>}
+            </>
+          )}
           <Button
             title="Vytvoriť knihu"
-            disabled={!paste?.trim()}
+            disabled={!sheet?.text.trim()}
             onPress={() => {
               try {
-                const text = paste ?? "";
-                setPaste(null);
-                create("Vložený text", chaptersFromText(text, detectLang(text)));
+                const text = sheet?.text ?? "";
+                const title = sheet?.mode === "scan" ? scanTitle(text) : "Vložený text";
+                setSheet(null);
+                create(title, chaptersFromText(text, detectLang(text)));
               } catch (e) {
                 setError(e instanceof Error ? e.message : String(e));
               }
@@ -263,6 +330,15 @@ function Step({ n, title, text }: { n: number; title: string; text: string }) {
       </View>
     </View>
   );
+}
+
+/** Book title for scanned pages: the first non-empty line, cut at a word before 40 characters. */
+function scanTitle(text: string): string {
+  const first = text.split("\n").map((l) => l.trim()).find((l) => l !== "") ?? "";
+  if (!first) return "Odfotené strany";
+  if (first.length <= 40) return first;
+  const cut = first.lastIndexOf(" ", 39);
+  return (cut > 0 ? first.slice(0, cut) : first.slice(0, 40)) + "…";
 }
 
 const st = StyleSheet.create({

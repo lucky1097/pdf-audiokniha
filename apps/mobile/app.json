@@ -3,7 +3,7 @@
     "name": "Audiokniha",
     "slug": "audiokniha",
     "scheme": "audiokniha",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
@@ -15,6 +15,7 @@
       },
       "infoPlist": {
         "CFBundleDisplayName": "Prečítaj mi",
+        "NSCameraUsageDescription": "Appka odfotí stranu knihy, aby ju mohla prečítať nahlas. Fotka zostane v telefóne.",
         "UIBackgroundModes": [
           "audio"
         ],

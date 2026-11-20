@@ -1,6 +1,10 @@
 # Progress
 
 ## Now
+- 2026-11-20, not committed, not built: "Odfotiť stranu" parts 1-3 of 4. Native module apps/mobile/modules/text-scanner
+  (VisionKit scanner + Live Text/Vision, Swift, not compiled: no Mac), camera permission text in app.json, core
+  textFromScan/fixSlovakLetters with tests (brief N), Library: "Odfotiť stranu", review sheet "Skontroluj text"
+  with "Odfotiť ďalšiu stranu" (brief O). Left: part 4 texts (O appke, version 1.1.0, App Store "Čo je nové"), then an EAS build and a test on the iPhone.
 - 2026-11-15, not committed: launch films made with HyperFrames in video/launch (storylines A and C, each 16:9 and
   9:16; projects film-a, film-c, film-a-9x16, film-c-9x16; MP4s in video/launch/renders). Voice = the app's own F4,
   sound normalised to about -16 LUFS. No music yet. video/ is gitignored (local only).

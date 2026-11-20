@@ -2,6 +2,9 @@
 
 Newest first. Each: date, decision, why.
 
+- 2026-11-20 Photographed pages: Apple only (VisionKit document camera; Live Text by default, Vision as the option with
+  line boxes), all on the phone; Google ML Kit was not taken. Slovak repair only turns apostrophe forms (t', l', d', I')
+  into ť, ľ, ď; a dropped háček is not guessed: letter statistics scored celkom→ceľkom higher than robit→robiť.
 - 2026-11-12 The iPhone app is "Prečítaj mi" ("Audify" was taken) in the App Store and under the icon (Apple wants them to match); the web app
   stays "Audiokniha". App Store first, Google Play later.
 - 2026-11-12 The OpenRAIL-M use restrictions (Attachment A) are passed on as terms of use: "O appke" in the app, the
