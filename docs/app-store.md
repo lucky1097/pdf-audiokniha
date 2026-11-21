@@ -90,6 +90,40 @@ Scanned PDFs without a text layer cannot be read yet.
 ### What's New [4000]
 - SK: `Prvá verzia.` EN: `First release.`
 
+## Version 1.1 (1.1.0)
+Same as 1.0 except the fields below. In App Store Connect: "+" next to iOS App → 1.1.0, pick the TestFlight
+build, paste these, Add for Review.
+
+### What's New [4000]
+SK:
+```
+Odfoť stranu knihy a appka ti ju prečíta nahlas.
+• Nové tlačidlo „Odfotiť stranu“: odfotíš jednu alebo viac strán, skontroluješ text a vytvoríš z neho knihu.
+• Text z fotky sa číta priamo v telefóne, fotka sa potom zmaže.
+• Slovenské ť, ľ a ď, ktoré skener prečíta zle, appka sama opraví.
+```
+EN:
+```
+Photograph a book page and the app reads it aloud.
+• New "Odfotiť stranu" (Photograph page) button: take one or more pages, check the text and make a book of it.
+• The text is read from the photo on your phone; the photo is deleted afterwards.
+• Slovak ť, ľ and ď that the scanner misreads are fixed automatically.
+```
+
+### Description changes
+- SK step 2: `2. Pridáš PDF zo Súborov, vložíš text alebo odfotíš stranu knihy.`
+- SK, first bullet under ČO VIE: `• Odfotíš stranu papierovej knihy a appka ju prečíta.`
+- SK last line: `Naskenované PDF bez textu zatiaľ čítať nevie; strany z papiera stačí odfotiť.`
+- EN step 2: `2. Add a PDF from Files, paste text or photograph a book page.`
+- EN, first bullet under FEATURES: `• Photograph a page of a paper book and the app reads it.`
+- EN last line: `Scanned PDFs without a text layer cannot be read yet; for paper pages, just photograph them.`
+
+### App Review notes, add after step 3
+```
+4. New in 1.1: in the library tap "Odfotiť stranu" (Photograph page). Apple's document camera opens; photograph a printed page, tap Save. The text is recognised on the device (VisionKit Live Text / Vision), shown in "Skontroluj text" (Check the text), and "Vytvoriť knihu" makes a book of it. The camera (NSCameraUsageDescription) is used only for this; photos are deleted after reading and never leave the device.
+```
+App Privacy answers stay "Data Not Collected".
+
 ## App Review Information
 - **Sign-in required:** No.
 - **Contact:** your name, phone and e-mail (only Apple sees them).
