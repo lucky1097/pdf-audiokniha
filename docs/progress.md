@@ -1,6 +1,7 @@
 # Progress
 
 ## Now
+- 2026-11-21: version 1.1.0 (build 17: photographed pages + háček repair) sent to App Review, status Waiting for Review, released automatically after approval. Store texts as in docs/app-store.md "Version 1.1". Privacy page updated for the camera.
 - 2026-11-20, not committed: Slovak háček repair for scanned text (brief P): word list of 11,521 forms (119 KB) in
   packages/core/src/sk-words.ts, rule in fixSlovakLetters, apostrophe rule tightened (McDonald's, d'Italia stay),
   licences for Leipzig (CC BY 4.0) and hunspell-sk (MPL-2.0) in "O appke". 67 tests pass, iOS bundle exports.
